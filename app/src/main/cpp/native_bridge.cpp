@@ -71,7 +71,8 @@ extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_ge
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"seed",seed);
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"sample.steps",steps);
  if(status==SD_STATUS_OK)status=sd_opt_set_float(opts,"sample.guidance.txt_cfg",cfg);
- if(status==SD_STATUS_OK&&sm&&sm[0])status=sd_opt_set_string(opts,"sample.method",sm);\n if(status==SD_STATUS_OK&&sc&&sc[0])status=sd_opt_set_string(opts,"sample.scheduler",sc);
+ if(status==SD_STATUS_OK&&sm&&sm[0])status=sd_opt_set_string(opts,"sample.method",sm);
+ if(status==SD_STATUS_OK&&sc&&sc[0])status=sd_opt_set_string(opts,"sample.scheduler",sc);
  if(status==SD_STATUS_OK){ g_progress_step.store(0); g_progress_total.store(0); sd_set_generation_progress_callback(g_ctx, progressCallback, nullptr); status=sd_generate_image(g_ctx,opts,&result); sd_set_generation_progress_callback(g_ctx,nullptr,nullptr); }
  env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);if(sm)env->ReleaseStringUTFChars(sampler,sm);if(sc)env->ReleaseStringUTFChars(scheduler,sc);if(opts)sd_opt_free(opts);
  if(status!=SD_STATUS_OK||!result||sd_result_get_image_count(result)==0){const char* err=sd_get_last_error();throwJava(env,err?err:"Image generation failed.");if(result)sd_result_free(result);return nullptr;}

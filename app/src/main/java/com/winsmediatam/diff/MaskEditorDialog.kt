@@ -27,13 +27,13 @@ fun MaskEditorDialog(source: Bitmap, onDismiss: () -> Unit, onApply: (Bitmap) ->
                 Text("Inpainting Mask", style = MaterialTheme.typography.titleLarge)
                 Text("Paint over areas to replace. White strokes represent the editable mask.", style = MaterialTheme.typography.bodySmall)
                 Canvas(Modifier.fillMaxWidth().height(320.dp).pointerInput(Unit) {
-                    detectDragGestures(onDragStart = { point -> current.clear(); current.add(point) }, onDrag = { change, _ -> current.add(change.position); change.consume() }, onDragEnd = { if (current.size > 1) strokes.add(current.toList()); current.clear() }, onDragCancel = { current.clear() })
+                    detectDragGestures(onDragStart = { point -> current.clear(); current.add(Offset(point.x / size.width, point.y / size.height)) }, onDrag = { change, _ -> current.add(Offset(change.position.x / size.width, change.position.y / size.height)); change.consume() }, onDragEnd = { if (current.size > 1) strokes.add(current.toList()); current.clear() }, onDragCancel = { current.clear() })
                 }) {
                     drawImage(source.asImageBitmap(), dstSize = androidx.compose.ui.unit.IntSize(size.width.toInt(), size.height.toInt()))
                     val all = strokes + listOf(current.toList())
                     all.forEach { points ->
                         if (points.size > 1) {
-                            val path = Path().apply { moveTo(points.first().x, points.first().y); points.drop(1).forEach { lineTo(it.x, it.y) } }
+                            val path = Path().apply { moveTo(points.first().x * size.width, points.first().y * size.height); points.drop(1).forEach { lineTo(it.x * size.width, it.y * size.height) } }
                             drawPath(path, Color.Red.copy(alpha = 0.65f), style = Stroke(width = 20.dp.toPx()))
                             drawPath(path, Color.White, style = Stroke(width = 12.dp.toPx()))
                         }
@@ -50,8 +50,8 @@ fun MaskEditorDialog(source: Bitmap, onDismiss: () -> Unit, onApply: (Bitmap) ->
                         (strokes + listOf(current.toList())).forEach { points ->
                             if (points.size > 1) {
                                 val path = android.graphics.Path()
-                                path.moveTo(points.first().x * source.width / size.width, points.first().y * source.height / size.height)
-                                points.drop(1).forEach { path.lineTo(it.x * source.width / size.width, it.y * source.height / size.height) }
+                                path.moveTo(points.first().x * source.width, points.first().y * source.height)
+                                points.drop(1).forEach { path.lineTo(it.x * source.width, it.y * source.height) }
                                 canvas.drawPath(path, paint)
                             }
                         }

@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DiffApp() {
     val context = LocalContext.current
-    val repository = remember(context) { ModelRepository(context) }
+    val repository = remember(context) { ModelRepository(context) }\n    val historyRepository = remember(context) { GenerationHistoryRepository(context) }
     var localModels by remember { mutableStateOf(repository.list()) }
     var importError by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -108,7 +108,7 @@ fun DiffApp() {
         }) { padding ->
             when (selectedTab) {
                 0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it }, generationProgress, { generationProgress = it })
-                1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
+                1 -> GalleryScreen(Modifier.padding(padding), historyRepository)
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
                     OfflineModelDownloadWorker.enqueue(context)
                 }, { OfflineModelDownloadWorker.cancel(context) })
@@ -127,7 +127,7 @@ private fun CreateScreen(
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
     generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit
 ) {
-    var modelMenuExpanded by remember { mutableStateOf(false) }
+    var modelMenuExpanded by remember { mutableStateOf(false) }\n    var presetMenuExpanded by remember { mutableStateOf(false) }\n    val promptPresets = PromptPresets.all
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()

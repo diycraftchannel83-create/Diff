@@ -36,6 +36,7 @@ class GenerationHistoryRepository(context: Context) {
     private val directory = File(appContext.filesDir, "generated").apply { mkdirs() }
     private val prefs = appContext.getSharedPreferences("diff_generation_history", Context.MODE_PRIVATE)
     private val key = "entries"
+    private val backupKey = "entries_backup"
 
     @Synchronized
     fun save(bitmap: Bitmap, prompt: String, negative: String, width: Int, height: Int, steps: Int, cfg: Float, seed: Long, initImagePath: String? = null, strength: Float = 0.65f, maskImagePath: String? = null, sampler: String = "auto", scheduler: String = "auto"): GenerationHistoryEntry {
@@ -54,8 +55,10 @@ class GenerationHistoryRepository(context: Context) {
 
     @Synchronized
     fun list(): List<GenerationHistoryEntry> {
-        val raw = prefs.getString(key, "[]") ?: "[]"
-        val array = runCatching { JSONArray(raw) }.getOrElse { JSONArray() }
+        // Recover from an interrupted or corrupted primary preference snapshot.
+        val array = parseArray(prefs.getString(key, null))
+            ?: parseArray(prefs.getString(backupKey, null))
+            ?: JSONArray()
         val result = mutableListOf<GenerationHistoryEntry>()
         for (i in 0 until array.length()) {
             val item = array.optJSONObject(i) ?: continue
@@ -124,6 +127,11 @@ class GenerationHistoryRepository(context: Context) {
         write(list().filterNot { it.id == entry.id })
     }
 
+    private fun parseArray(raw: String?): JSONArray? {
+        if (raw.isNullOrBlank()) return null
+        return runCatching { JSONArray(raw) }.getOrNull()
+    }
+
     private fun write(entries: List<GenerationHistoryEntry>) {
         val array = JSONArray()
         entries.forEach { entry ->
@@ -132,6 +140,10 @@ class GenerationHistoryRepository(context: Context) {
                 .put("width", entry.width).put("height", entry.height).put("steps", entry.steps)
                 .put("cfg", entry.cfg.toDouble()).put("seed", entry.seed).put("created", entry.createdAt).put("favorite", entry.favorite).put("initImagePath", entry.initImagePath ?: "").put("strength", entry.strength).put("maskImagePath", entry.maskImagePath ?: "").put("sampler", entry.sampler).put("scheduler", entry.scheduler))
         }
-        prefs.edit().putString(key, array.toString()).apply()
+        val serialized = array.toString()
+        val current = prefs.getString(key, null)
+        val editor = prefs.edit()
+        if (parseArray(current) != null) editor.putString(backupKey, current)
+        editor.putString(key, serialized).commit()
     }
 }

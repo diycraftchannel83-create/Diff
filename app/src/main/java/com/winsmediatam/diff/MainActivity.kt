@@ -91,7 +91,7 @@ fun DiffApp() {
     var showAdvanced by remember { mutableStateOf(false) }
     var generatedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var generating by remember { mutableStateOf(false) }
-    var generationProgress by remember { mutableFloatStateOf(0f)
+    var generationProgress by remember { mutableFloatStateOf(0f) }
     var generationMessage by remember { mutableStateOf("Select a compatible GGUF model to begin.") }
     var loadedModelPath by remember { mutableStateOf<String?>(null) }
 

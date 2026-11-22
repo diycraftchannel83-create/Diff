@@ -132,11 +132,13 @@ private fun CreateScreen(
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     var presetMenuExpanded by remember { mutableStateOf(false) }
-    val promptPresets = PromptPresets.all\n    val context = LocalContext.current\n    val userPresetRepository = remember(context) { PromptPresetRepository(context) }\n    var userPresets by remember { mutableStateOf(userPresetRepository.list()) }\n    var showSavePreset by remember { mutableStateOf(false) }\n    var showManagePresets by remember { mutableStateOf(false) }\n    var presetName by remember { mutableStateOf("") }
-    var presetMenuExpanded by remember { mutableStateOf(false) }
     val promptPresets = PromptPresets.all
+    val userPresetRepository = remember(context) { PromptPresetRepository(context) }
+    var userPresets by remember { mutableStateOf(userPresetRepository.list()) }
+    var showSavePreset by remember { mutableStateOf(false) }
+    var showManagePresets by remember { mutableStateOf(false) }
+    var presetName by remember { mutableStateOf("") }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val deviceCapabilities = remember(context) { DeviceCapabilities.current(context) }
     LazyColumn(modifier.fillMaxSize().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -157,10 +159,15 @@ private fun CreateScreen(
                     Box {
                         TextButton(onClick = { presetMenuExpanded = true }) { Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(6.dp)); Text("Prompt presets") }
                         DropdownMenu(expanded = presetMenuExpanded, onDismissRequest = { presetMenuExpanded = false }) {
-                            promptPresets.forEach { (name, preset) -> DropdownMenuItem(text = { Text(name) }, onClick = { onPrompt(if (prompt.isBlank()) preset else "$prompt, $preset"); presetMenuExpanded = false }) }\n                            userPresets.forEach { item -> DropdownMenuItem(text = { Text("★ " + item.name) }, onClick = { onPrompt(item.prompt); presetMenuExpanded = false }) }
+                            promptPresets.forEach { (name, preset) -> DropdownMenuItem(text = { Text(name) }, onClick = { onPrompt(if (prompt.isBlank()) preset else "$prompt, $preset"); presetMenuExpanded = false }) }
+                            userPresets.forEach { item -> DropdownMenuItem(text = { Text("★ " + item.name) }, onClick = { onPrompt(item.prompt); presetMenuExpanded = false }) }
                         }
                     }
-                    OutlinedTextField(value = prompt, onValueChange = onPrompt, modifier = Modifier.fillMaxWidth(), minLines = 4, placeholder = { Text("Describe the image you want to create…") })\n                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                        OutlinedButton(onClick = { presetName = ""; showSavePreset = true }, enabled = prompt.isNotBlank()) { Text("Save custom preset") }\n                        if (userPresets.isNotEmpty()) OutlinedButton(onClick = { showManagePresets = true }) { Text("Manage presets") }\n                    }
+                    OutlinedTextField(value = prompt, onValueChange = onPrompt, modifier = Modifier.fillMaxWidth(), minLines = 4, placeholder = { Text("Describe the image you want to create…") })
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { presetName = ""; showSavePreset = true }, enabled = prompt.isNotBlank()) { Text("Save custom preset") }
+                        if (userPresets.isNotEmpty()) OutlinedButton(onClick = { showManagePresets = true }) { Text("Manage presets") }
+                    }
                     Text("Negative prompt", fontWeight = FontWeight.Bold)
                     OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })
                 }

@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -226,7 +227,7 @@ private fun CreateScreen(
                             onGenerationMessage("Model loaded. Starting generation…")
                         }
                         val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L
-                        val generationJob = coroutineScope.launch(Dispatchers.IO) {
+                        val generationJob = coroutineScope.async(Dispatchers.IO) {
                             NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed)
                         }
                         var bitmap: Bitmap? = null
@@ -239,6 +240,8 @@ private fun CreateScreen(
                         onBitmap(bitmap)
                         onProgress(1f)
                         onGenerationMessage(if (bitmap != null) "Generation complete." else "No image was returned.")
+                    } catch (e: CancellationException) {
+                        onGenerationMessage("Generation cancelled.")
                     } catch (e: Exception) {
                         onGenerationMessage(e.message ?: "Generation failed.")
                     } finally { onGenerating(false) }

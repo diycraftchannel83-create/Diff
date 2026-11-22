@@ -48,8 +48,10 @@
 - [x] Heuristic pre-generation RAM/resolution guard
 - [x] Runtime/privacy Settings screen
 - [x] Pure custom prompt preset validation tests (name/prompt normalization and limits)
+- [x] History metadata recovery fallback (primary/backup JSON snapshot)
 - [ ] Android persistence tests for history and custom presets
 - [ ] UI tests, accessibility and localization review
+- [x] Gallery 2× resize bitmap cleanup on success/failure and partial-file cleanup (source)
 - [ ] Native memory/performance optimization
 - [ ] Real-device compatibility matrix
 - [ ] Build/install/smoke tests, APK/AAB pipeline

@@ -42,7 +42,8 @@
 - [ ] AI upscale model/pipeline
 
 ## Phase 5 — Release quality
-- [x] Pure unit test source for model extension rules and built-in prompt presets
+- [x] Pure unit test source for model extension rules, built-in prompt presets and generation request validation
+- [x] Shared request validation for prompt, dimensions, steps, CFG, batch size and seed overflow
 - [x] Heuristic pre-generation RAM/resolution guard
 - [x] Runtime/privacy Settings screen
 - [ ] Unit tests for history and custom preset persistence

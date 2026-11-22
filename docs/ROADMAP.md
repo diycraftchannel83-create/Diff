@@ -15,12 +15,14 @@
 - [x] Native runtime status displayed in app
 - [x] Pin stable-diffusion.cpp revision (upstream commit 532d2c1)
 - [x] Build stable-diffusion.cpp into Android ARM64 JNI shared library (CPU baseline)\n- [x] Wire stable-diffusion.cpp opaque API to JNI model loading and basic txt2img generation (source integration; build validation pending)
-- [x] Basic device RAM/architecture capability report and resolution recommendation\n- [ ] Device benchmark and memory capability checks
+- [x] Basic device RAM/architecture capability report and resolution recommendation\n- [x] Pre-generation memory availability check and conservative resolution guard (source; device validation pending)
+- [ ] Device benchmark and memory capability checks
 - [x] Local model file import manager (SAF, app-private storage, list and delete)
 - [x] Model extension validation and temporary-file import safety
 - [x] Model Manager UI connected to import/list/delete actions\n- [x] Create screen model selector connected to imported models and persisted selection
 - [x] In-app starter model downloader (SD 1.5 Q8 GGUF catalog entry, progress and cancel, ZIP extraction/install)\n- [x] Resumable model download (keeps partial file on cancel/interruption; resumes using HTTP Range when supported)\n- [x] Background transfer worker infrastructure (foreground notification, progress updates, unique-work enqueue/cancel API)\n- [x] Connect Model Manager download/cancel controls and WorkManager progress state
-- [ ] Generation progress and cancellation
+- [x] Native generation progress callback and Compose progress display (source; build validation pending)
+- [x] Native generation cancellation request via stable-diffusion.cpp cancel API (source; runtime validation pending)
 - [x] Native generation errors surfaced to Create screen
 - [x] Real txt2img pipeline source wiring (model load, prompt/negative prompt, dimensions, steps, CFG, seed, bitmap preview; validation pending)
 
@@ -41,6 +43,7 @@
 ## Phase 5 — Release quality
 - [x] Unit tests (model file extension rules)
 - [ ] UI tests
+- [x] Pre-generation low-memory / resolution safety guard
 - [ ] Memory/performance optimization
 - [ ] Device compatibility matrix
 - [ ] Release APK/AAB

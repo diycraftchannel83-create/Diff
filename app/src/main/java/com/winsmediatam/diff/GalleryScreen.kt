@@ -57,7 +57,7 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
                         Text("Resolution: ${entry.width} × ${entry.height} • Steps: ${entry.steps} • CFG: ${entry.cfg} • Seed: ${entry.seed}", style = MaterialTheme.typography.bodySmall)
                         Text("Prompt: ${entry.prompt}", style = MaterialTheme.typography.bodySmall)
                         Text("Negative prompt: ${entry.negativePrompt.ifBlank { "None" }}", style = MaterialTheme.typography.bodySmall)
-                        Text(if (entry.initImagePath != null) "Image-to-image source: available • Strength ${(entry.strength * 100).toInt()}%" else "Mode: Text-to-image", style = MaterialTheme.typography.bodySmall)
+                        Text(if (entry.initImagePath != null) "Image-to-image source: available • Strength ${(entry.strength * 100).toInt()}%" else "Mode: Text-to-image", style = MaterialTheme.typography.bodySmall)\n                        Text(if (entry.maskImagePath != null) "Inpainting mask: saved" else "Mask: none", style = MaterialTheme.typography.bodySmall)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         OutlinedButton(onClick = { val updated = history.toggleFavorite(entry); entries = entries.map { if (it.id == entry.id) updated else it } }) { Icon(Icons.Default.Favorite, null, tint = if (entry.favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant); Text(if (entry.favorite) "Favorited" else "Favorite") }

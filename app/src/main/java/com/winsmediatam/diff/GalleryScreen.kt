@@ -41,7 +41,8 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
                     Text(entry.prompt, style = MaterialTheme.typography.titleMedium)
                     Text("${entry.width}×${entry.height} • ${entry.steps} steps • CFG ${entry.cfg} • Seed ${entry.seed}", style = MaterialTheme.typography.bodySmall)
                     Text(entry.negativePrompt.takeIf { it.isNotBlank() }?.let { "Negative: $it" } ?: "No negative prompt", style = MaterialTheme.typography.bodySmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {\n                        OutlinedButton(onClick = { onReusePrompt(entry) }) { Text(\"Reuse prompt\") }
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedButton(onClick = { onReusePrompt(entry) }) { Text(\"Reuse prompt\") }
                         OutlinedButton(onClick = { runCatching { history.exportToPictures(entry) }.onSuccess { actionMessage = \"Exported to Pictures/Diff AI Studio\" }.onFailure { actionMessage = it.message ?: \"Export failed\" } }) { Text(\"Export\") }
                         OutlinedButton(onClick = { runCatching {
                             val fileUri = FileProvider.getUriForFile(context, context.packageName + \".fileprovider\", File(entry.filePath))

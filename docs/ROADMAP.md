@@ -50,7 +50,7 @@
 - [ ] Native memory/performance optimization
 - [ ] Real-device compatibility matrix
 - [ ] Build/install/smoke tests, APK/AAB pipeline
-- [ ] Privacy policy, model licenses and third-party notices
+- [x] Privacy policy draft and third-party license/model notice checklist added (final legal review pending)
 - [ ] Play Store release checklist
 
 ## Validation status

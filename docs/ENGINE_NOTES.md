@@ -9,6 +9,8 @@ Diff AI Studio targets offline on-device inference, ARM64 first.
 - Image-to-image picker copies source into app-private storage, downsamples/normalizes it to PNG, and passes init_image plus strength
 - Mask editor paints white strokes on a black mask and passes mask_image with the selected source image
 - Sequential batch UI runs up to four separate native calls and stores each successful result
+- History restore reinstates sampler/scheduler and image-to-image source, strength and mask if source files remain available
+- Custom prompt preset names/prompts are normalized and validated before persistence
 - Gallery offers 2× filtered bitmap resize (not AI upscaling)
 - Source option/API wiring is not compiled or runtime verified
 

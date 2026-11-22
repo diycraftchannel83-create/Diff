@@ -1,8 +1,13 @@
 #include <jni.h>
 #include <string>
+
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_winsmediatam_diff_NativeRuntime_getRuntimeStatus(JNIEnv* env, jobject) {
-    const std::string status = "Native bridge loaded (arm64-v8a). Diffusion engine is not bundled yet.";
+#ifdef DIFF_HAS_SDCPP
+    const std::string status = "stable-diffusion.cpp CPU backend compiled for Android ARM64. JNI inference API integration is next.";
+#else
+    const std::string status = "Native bridge loaded. Diffusion engine is not compiled.";
+#endif
     return env->NewStringUTF(status.c_str());
 }
 extern "C" JNIEXPORT jstring JNICALL

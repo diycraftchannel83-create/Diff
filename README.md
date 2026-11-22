@@ -4,13 +4,13 @@ Android-native, offline-first AI image generation studio.
 
 ## Implemented
 - Kotlin + Jetpack Compose foundation and dark studio UI
-- ARM64 JNI/CMake status bridge
+- ARM64 JNI/CMake status bridge\n- Pinned stable-diffusion.cpp CPU backend configured and linked for Android ARM64
 - Prompt, negative prompt, dimensions, steps, CFG and seed controls
 - Local model manager: import from Android file picker, list, size display and delete
 - Supported file extension validation and safer temporary import/finalize flow
 - GitHub Actions Debug APK build
 
 ## Important
-The native diffusion engine is not integrated yet. Model import and management do not imply that files can currently be loaded or used for generation. Generation remains disabled until inference is implemented and verified.
+The stable-diffusion.cpp native library is now configured to compile/link into the Android ARM64 JNI library. The JNI inference API and model loading are not wired yet. Imported files still cannot generate images, and Generate remains disabled.
 
 Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md). Engine notes: [docs/ENGINE_NOTES.md](docs/ENGINE_NOTES.md).

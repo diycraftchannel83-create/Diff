@@ -13,7 +13,7 @@ android {
         versionCode = 2
         versionName = "0.2.0"
         ndk { abiFilters += listOf("arm64-v8a") }
-        externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
+        externalNativeBuild { cmake { cppFlags += "-std=c++17"; arguments += "-DDIFF_ENABLE_SDCPP=ON" } }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

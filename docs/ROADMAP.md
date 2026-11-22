@@ -13,8 +13,8 @@
 - [x] Android arm64 native CMake integration
 - [x] JNI bridge skeleton and architecture reporting
 - [x] Native runtime status displayed in app
-- [ ] Pin and evaluate stable-diffusion.cpp revision
-- [ ] Build and integrate diffusion engine
+- [x] Pin stable-diffusion.cpp revision (upstream commit 532d2c1)
+- [x] Build stable-diffusion.cpp into Android ARM64 JNI shared library (CPU baseline)\n- [ ] Wire stable-diffusion.cpp opaque API to JNI model loading/inference
 - [ ] Device benchmark and memory capability checks
 - [x] Local model file import manager (SAF, app-private storage, list and delete)
 - [x] Model extension validation and temporary-file import safety

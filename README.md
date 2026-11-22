@@ -19,6 +19,7 @@ Android-native, offline-first AI image generation studio (ARM64-first).
 - Gallery favorites, prompt search, filtering, sorting and metadata details
 - Local 2× filtered image resize (non-AI), reuse prompt, delete, export and Android share
 - Runtime/privacy information screen
+- Unit test source for model file rules and built-in preset integrity (not run yet)
 
 ## Validation caveat
 Build/CI and device validation are deferred. Native API wiring, image-to-image, batch generation, inpainting, resize, history, export/share and UI have not been compiled or runtime tested. This is not production-ready.

@@ -19,7 +19,7 @@ class ModelRepository(context: Context) {
     fun importModel(uri: Uri): LocalModel {
         val name = queryDisplayName(uri).ifBlank { "model_${UUID.randomUUID()}.gguf" }
         val safeName = name.replace(Regex("[^A-Za-z0-9._-]"), "_")
-        require(safeName.substringAfterLast(".", "").lowercase() in setOf("gguf", "safetensors", "ckpt", "pt", "pth")) { "Unsupported model file type" }
+        require(ModelFileRules.isSupported(safeName)) { "Unsupported model file type" }
         val requestedTarget = File(folder, safeName)
         val target = if (requestedTarget.exists()) File(folder, "${requestedTarget.nameWithoutExtension}_${UUID.randomUUID().toString().take(8)}.${requestedTarget.extension}") else requestedTarget
         val temp = File(folder, "${target.name}.importing_${UUID.randomUUID()}")

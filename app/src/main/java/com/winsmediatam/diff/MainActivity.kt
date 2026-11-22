@@ -24,6 +24,9 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.compose.runtime.collectAsState
 
 private val Bg = Color(0xFF0B0D12)
 private val SurfaceDark = Color(0xFF171A22)
@@ -44,12 +47,16 @@ fun DiffApp() {
     var localModels by remember { mutableStateOf(repository.list()) }
     var importError by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
-    var downloadJob by remember { mutableStateOf<Job?>(null) }
-    var isDownloading by remember { mutableStateOf(false) }
-    var downloadProgress by remember { mutableFloatStateOf(0f) }
-    var downloadedBytes by remember { mutableStateOf(0L) }
-    var downloadTotalBytes by remember { mutableStateOf(OfflineModelDownloader.MODEL_ZIP_SIZE) }
-    var downloadError by remember { mutableStateOf<String?>(null) }
+    val downloadWorkInfos by remember(context) { WorkManager.getInstance(context).getWorkInfosForUniqueWorkFlow(OfflineModelDownloadWorker.WORK_NAME) }.collectAsState(initial = emptyList())
+    val downloadWorkInfo = downloadWorkInfos.firstOrNull()
+    val isDownloading = downloadWorkInfo?.state == WorkInfo.State.RUNNING || downloadWorkInfo?.state == WorkInfo.State.ENQUEUED
+    val downloadProgress = (downloadWorkInfo?.progress?.getInt(OfflineModelDownloadWorker.KEY_PERCENT, 0) ?: 0) / 100f
+    val downloadedBytes = downloadWorkInfo?.progress?.getLong(OfflineModelDownloadWorker.KEY_DOWNLOADED, 0L) ?: 0L
+    val downloadTotalBytes = downloadWorkInfo?.progress?.getLong(OfflineModelDownloadWorker.KEY_TOTAL, OfflineModelDownloader.MODEL_ZIP_SIZE) ?: OfflineModelDownloader.MODEL_ZIP_SIZE
+    val downloadError = if (downloadWorkInfo?.state == WorkInfo.State.FAILED) "Background download failed. Try again; partial download may resume." else null
+    LaunchedEffect(downloadWorkInfo?.state) {
+        if (downloadWorkInfo?.state == WorkInfo.State.SUCCEEDED) localModels = repository.list()
+    }
     val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             runCatching { repository.importModel(uri) }
@@ -91,14 +98,8 @@ fun DiffApp() {
                 0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it })
                 1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
-                    isDownloading = true; downloadError = null; downloadedBytes = OfflineModelDownloader.partialDownloadBytes(context); downloadProgress = if (downloadTotalBytes > 0L) downloadedBytes.toFloat() / downloadTotalBytes else 0f
-                    downloadJob = coroutineScope.launch {
-                        try {
-                            OfflineModelDownloader.downloadAndInstall(context) { received, total -> downloadedBytes = received; downloadTotalBytes = total; downloadProgress = if (total > 0L) received.toFloat() / total else 0f }
-                            localModels = repository.list(); isDownloading = false; downloadError = null
-                        } catch (e: CancellationException) { isDownloading = false } catch (e: Exception) { isDownloading = false; downloadError = e.message ?: "Download failed" }
-                    }
-                }, { downloadJob?.cancel(); isDownloading = false })
+                    OfflineModelDownloadWorker.enqueue(context)
+                }, { OfflineModelDownloadWorker.cancel(context) })
                 else -> EmptyScreen(Modifier.padding(padding), "Settings", "Local generation preferences and app configuration.")
             }
         }

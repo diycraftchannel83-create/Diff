@@ -23,7 +23,8 @@ data class GenerationHistoryEntry(
     val createdAt: Long,
     val favorite: Boolean = false,
     val initImagePath: String? = null,
-    val strength: Float = 0.65f
+    val strength: Float = 0.65f,
+    val maskImagePath: String? = null
 )
 
 class GenerationHistoryRepository(context: Context) {

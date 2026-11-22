@@ -50,7 +50,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DiffApp() {
     val context = LocalContext.current
-    val repository = remember(context) { ModelRepository(context) }\n    val historyRepository = remember(context) { GenerationHistoryRepository(context) }
+    val repository = remember(context) { ModelRepository(context) }
+    val historyRepository = remember(context) { GenerationHistoryRepository(context) }
     var localModels by remember { mutableStateOf(repository.list()) }
     var importError by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -127,7 +128,9 @@ private fun CreateScreen(
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
     generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit
 ) {
-    var modelMenuExpanded by remember { mutableStateOf(false) }\n    var presetMenuExpanded by remember { mutableStateOf(false) }\n    val promptPresets = PromptPresets.all
+    var modelMenuExpanded by remember { mutableStateOf(false) }
+    var presetMenuExpanded by remember { mutableStateOf(false) }
+    val promptPresets = PromptPresets.all
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -238,6 +241,7 @@ private fun CreateScreen(
                         }
                         bitmap = generationJob.await()
                         onBitmap(bitmap)
+                        if (bitmap != null) historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed)
                         onProgress(1f)
                         onGenerationMessage(if (bitmap != null) "Generation complete." else "No image was returned.")
                     } catch (e: CancellationException) {

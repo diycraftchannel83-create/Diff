@@ -51,7 +51,7 @@
 - [ ] Real-device compatibility matrix
 - [ ] Build/install/smoke tests, APK/AAB pipeline
 - [x] Privacy policy draft and third-party license/model notice checklist added (final legal review pending)
-- [ ] Play Store release checklist
+- [x] Release qualification checklist file added\n- [ ] Complete checklist and Play Store release qualification
 
 ## Validation status
 Source changes are committed incrementally. Build/CI/device validation remains intentionally deferred. Image-to-image, batch, inpainting, gallery/history, export/share and preset UI are not compile/runtime verified. Production readiness requires completing validation and remaining workflow items.

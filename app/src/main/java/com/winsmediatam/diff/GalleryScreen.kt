@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository) {
+fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onReusePrompt: (GenerationHistoryEntry) -> Unit) {
     var entries by remember { mutableStateOf(history.list()) }
     var actionMessage by remember { mutableStateOf<String?>(null) }
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -41,7 +41,7 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository) {
                     Text(entry.prompt, style = MaterialTheme.typography.titleMedium)
                     Text("${entry.width}×${entry.height} • ${entry.steps} steps • CFG ${entry.cfg} • Seed ${entry.seed}", style = MaterialTheme.typography.bodySmall)
                     Text(entry.negativePrompt.takeIf { it.isNotBlank() }?.let { "Negative: $it" } ?: "No negative prompt", style = MaterialTheme.typography.bodySmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {\n                        OutlinedButton(onClick = { onReusePrompt(entry) }) { Text(\"Reuse prompt\") }
                         OutlinedButton(onClick = { runCatching { history.exportToPictures(entry) }.onSuccess { actionMessage = \"Exported to Pictures/Diff AI Studio\" }.onFailure { actionMessage = it.message ?: \"Export failed\" } }) { Text(\"Export\") }
                         OutlinedButton(onClick = { runCatching {
                             val fileUri = FileProvider.getUriForFile(context, context.packageName + \".fileprovider\", File(entry.filePath))

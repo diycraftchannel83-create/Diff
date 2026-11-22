@@ -150,9 +150,13 @@ private fun CreateScreen(
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) coroutineScope.launch {
             runCatching { withContext(Dispatchers.IO) {
-                val file = File(File(context.filesDir, "img2img_inputs").apply { mkdirs() }, "img2img_source_${System.currentTimeMillis()}.png")
+                val extension = when (context.contentResolver.getType(uri)?.lowercase()) { "image/jpeg" -> "jpg"; "image/webp" -> "webp"; else -> "png" }
+                val file = File(File(context.filesDir, "img2img_inputs").apply { mkdirs() }, "img2img_source_${System.currentTimeMillis()}.$extension")
                 context.contentResolver.openInputStream(uri)?.use { input -> file.outputStream().use { output -> input.copyTo(output) } } ?: error("Could not open selected image")
-                val decoded = BitmapFactory.decodeFile(file.absolutePath) ?: error("Selected image could not be decoded")
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(file.absolutePath, bounds)
+                val sample = maxOf(1, (maxOf(bounds.outWidth, bounds.outHeight) + 2047) / 2048)
+                val decoded = BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample }) ?: error("Selected image could not be decoded")
                 file.absolutePath to decoded
             } }.onSuccess { pair -> initImagePath = pair.first; initImagePreview = pair.second }.onFailure { onGenerationMessage(it.message ?: "Image import failed") }
         }

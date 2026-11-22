@@ -71,7 +71,7 @@ class GenerationHistoryRepository(context: Context) {
             array.put(JSONObject().put("id", entry.id).put("file", entry.filePath)
                 .put("prompt", entry.prompt).put("negative", entry.negativePrompt)
                 .put("width", entry.width).put("height", entry.height).put("steps", entry.steps)
-                .put("cfg", entry.cfg.toDouble()).put("seed", entry.seed).put("created", entry.createdAt))
+                .put("cfg", entry.cfg.toDouble()).put("seed", entry.seed).put("created", entry.createdAt).put("favorite", entry.favorite))
         }
         prefs.edit().putString(key, array.toString()).apply()
     }

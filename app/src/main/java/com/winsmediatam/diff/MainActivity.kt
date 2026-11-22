@@ -21,6 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 private val Bg = Color(0xFF0B0D12)
 private val SurfaceDark = Color(0xFF171A22)
@@ -40,6 +43,13 @@ fun DiffApp() {
     val repository = remember(context) { ModelRepository(context) }
     var localModels by remember { mutableStateOf(repository.list()) }
     var importError by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    var downloadJob by remember { mutableStateOf<Job?>(null) }
+    var isDownloading by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableFloatStateOf(0f) }
+    var downloadedBytes by remember { mutableStateOf(0L) }
+    var downloadTotalBytes by remember { mutableStateOf(OfflineModelDownloader.MODEL_ZIP_SIZE) }
+    var downloadError by remember { mutableStateOf<String?>(null) }
     val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             runCatching { repository.importModel(uri) }
@@ -80,7 +90,15 @@ fun DiffApp() {
             when (selectedTab) {
                 0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it })
                 1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
-                2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError)
+                2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
+                    isDownloading = true; downloadError = null; downloadProgress = 0f; downloadedBytes = 0L
+                    downloadJob = coroutineScope.launch {
+                        try {
+                            OfflineModelDownloader.downloadAndInstall(context) { received, total -> downloadedBytes = received; downloadTotalBytes = total; downloadProgress = if (total > 0L) received.toFloat() / total else 0f }
+                            localModels = repository.list(); isDownloading = false; downloadError = null
+                        } catch (e: CancellationException) { isDownloading = false } catch (e: Exception) { isDownloading = false; downloadError = e.message ?: "Download failed" }
+                    }
+                }, { downloadJob?.cancel(); isDownloading = false })
                 else -> EmptyScreen(Modifier.padding(padding), "Settings", "Local generation preferences and app configuration.")
             }
         }
@@ -174,11 +192,27 @@ private fun DimensionField(label: String, value: String, onValue: (String) -> Un
 }
 
 @Composable
-private fun ModelManagerScreen(modifier: Modifier, models: List<LocalModel>, onImport: () -> Unit, onDelete: (LocalModel) -> Unit, error: String?) {
+private fun ModelManagerScreen(modifier: Modifier, models: List<LocalModel>, onImport: () -> Unit, onDelete: (LocalModel) -> Unit, error: String?, downloading: Boolean, progress: Float, downloaded: Long, total: Long, downloadError: String?, onDownload: () -> Unit, onCancelDownload: () -> Unit) {
     LazyColumn(modifier.fillMaxSize().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item {
             Text("LOCAL MODELS", fontWeight = FontWeight.Black, fontSize = 22.sp)
             Text("Import compatible model files. Files are stored privately in app storage.", color = TextMuted, fontSize = 13.sp)
+        }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark), shape = RoundedCornerShape(16.dp)) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("DOWNLOAD MODEL OFFLINE", color = Accent, fontWeight = FontWeight.Bold)
+                    Text("Stable Diffusion 1.5 Q8 GGUF • ~1.88 GB • CreativeML OpenRAIL-M", color = TextMuted, fontSize = 12.sp)
+                    Text("Download inside the app. The ZIP is extracted automatically and the GGUF is added to Local Models.", fontSize = 13.sp)
+                    if (downloading) {
+                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+                        Text("${(progress * 100).toInt()}% • ${ModelRepository.formatSize(downloaded)} / ${ModelRepository.formatSize(total)}", color = TextMuted, fontSize = 12.sp)
+                        OutlinedButton(onClick = onCancelDownload, modifier = Modifier.fillMaxWidth()) { Text("Cancel download") }
+                    } else Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Download, null); Spacer(Modifier.width(8.dp)); Text("Download SD 1.5 Offline Model") }
+                    if (downloadError != null) Text(downloadError, color = Color(0xFFFF6B6B), fontSize = 12.sp)
+                    Text("Source: Hugging Face • Download requires internet and about 4 GB free storage.", color = TextMuted, fontSize = 11.sp)
+                }
+            }
         }
         item {
             Button(onClick = onImport, modifier = Modifier.fillMaxWidth()) {

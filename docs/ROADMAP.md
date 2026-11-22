@@ -19,7 +19,7 @@
 - [x] Local model file import manager (SAF, app-private storage, list and delete)
 - [x] Model extension validation and temporary-file import safety
 - [x] Model Manager UI connected to import/list/delete actions\n- [x] Create screen model selector connected to imported models and persisted selection
-- [x] In-app starter model downloader (SD 1.5 Q8 GGUF catalog entry, progress and cancel, ZIP extraction/install)\n- [ ] Model download resume and background transfer
+- [x] In-app starter model downloader (SD 1.5 Q8 GGUF catalog entry, progress and cancel, ZIP extraction/install)\n- [x] Resumable model download (keeps partial file on cancel/interruption; resumes using HTTP Range when supported)\n- [ ] Background transfer notification and lifecycle-independent worker
 - [ ] Generation progress, cancellation and errors
 - [ ] Real txt2img pipeline
 

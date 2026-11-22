@@ -145,7 +145,7 @@ private fun CreateScreen(
     val coroutineScope = rememberCoroutineScope()
     var initImagePath by remember { mutableStateOf<String?>(null) }
     var initImagePreview by remember { mutableStateOf<Bitmap?>(null) }
-    var imageStrength by remember { mutableFloatStateOf(0.65f) }
+    var imageStrength by remember { mutableFloatStateOf(0.65f) }\n    var maskImagePath by remember { mutableStateOf<String?>(null) }\n    var showMaskEditor by remember { mutableStateOf(false) }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) coroutineScope.launch {
             runCatching { withContext(Dispatchers.IO) {
@@ -164,7 +164,7 @@ private fun CreateScreen(
         }
     }
     val deviceCapabilities = remember(context) { DeviceCapabilities.current(context) }
-    if (showManagePresets) {
+    if (showMaskEditor && initImagePreview != null) {\n        MaskEditorDialog(source = initImagePreview!!, onDismiss = { showMaskEditor = false }, onApply = { mask -> runCatching { val file = File(File(context.filesDir, "img2img_masks").apply { mkdirs() }, "mask_${System.currentTimeMillis()}.png"); file.outputStream().use { output -> check(mask.compress(Bitmap.CompressFormat.PNG, 100, output)) }; maskImagePath = file.absolutePath; showMaskEditor = false }.onFailure { onGenerationMessage(it.message ?: "Could not save mask") } })\n    }\n    if (showManagePresets) {
         AlertDialog(onDismissRequest = { showManagePresets = false }, title = { Text("Manage custom presets") },
             text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { userPresets.forEach { preset -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) { Text(preset.name, modifier = Modifier.weight(1f)); TextButton(onClick = { userPresetRepository.delete(preset.name); userPresets = userPresetRepository.list() }) { Text("Delete") } } } } },
             confirmButton = { TextButton(onClick = { showManagePresets = false }) { Text("Close") } })
@@ -204,7 +204,7 @@ private fun CreateScreen(
                     }
                     Text("Negative prompt", fontWeight = FontWeight.Bold)
                     OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { imagePicker.launch("image/*") }) { Text(if (initImagePath == null) "Add image-to-image source" else "Change source image") }; if (initImagePath != null) OutlinedButton(onClick = { initImagePath = null; initImagePreview = null }) { Text("Remove source") } }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { imagePicker.launch("image/*") }) { Text(if (initImagePath == null) "Add image-to-image source" else "Change source image") }; if (initImagePath != null) OutlinedButton(onClick = { initImagePath = null; initImagePreview = null; maskImagePath = null }) { Text("Remove source") } }\n                    if (initImagePreview != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { showMaskEditor = true }) { Text(if (maskImagePath == null) "Paint inpainting mask" else "Edit mask") }; if (maskImagePath != null) OutlinedButton(onClick = { maskImagePath = null }) { Text("Clear mask") } }
                     initImagePreview?.let { Image(it.asImageBitmap(), contentDescription = "Image-to-image source", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp)) }
                     if (initImagePath != null) { Text("Image-to-image strength: ${(imageStrength * 100).toInt()}%"); Slider(value = imageStrength, onValueChange = { imageStrength = it }, valueRange = 0.05f..1f) }
                 }
@@ -291,7 +291,7 @@ private fun CreateScreen(
                         for (batchIndex in 0 until batchCount) {
                             val runSeed = if (parsedSeed >= 0L) parsedSeed + batchIndex else -1L
                             val generationJob = coroutineScope.async(Dispatchers.IO) {
-                                NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, runSeed, sampler, scheduler, initImagePath ?: "", imageStrength)
+                                NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, runSeed, sampler, scheduler, initImagePath ?: "", imageStrength, maskImagePath ?: "")
                             }
                             while (generationJob.isActive) {
                                 val progress = withContext(Dispatchers.IO) { NativeRuntime.getGenerationProgress() }

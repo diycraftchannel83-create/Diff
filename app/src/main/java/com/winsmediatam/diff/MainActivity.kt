@@ -88,7 +88,7 @@ fun DiffApp() {
     var cfg by remember { mutableFloatStateOf(7f) }
     var width by remember { mutableStateOf("512") }
     var height by remember { mutableStateOf("512") }
-    var seed by remember { mutableStateOf("-1") }
+    var seed by remember { mutableStateOf("-1") }\n    var sampler by remember { mutableStateOf("euler") }\n    var scheduler by remember { mutableStateOf("discrete") }
     var showAdvanced by remember { mutableStateOf(false) }
     var generatedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var generating by remember { mutableStateOf(false) }
@@ -108,7 +108,7 @@ fun DiffApp() {
             }
         }) { padding ->
             when (selectedTab) {
-                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it }, generationProgress, { generationProgress = it }, historyRepository)
+                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it }, generationProgress, { generationProgress = it }, historyRepository, sampler, { sampler = it }, scheduler, { scheduler = it })
                 1 -> GalleryScreen(Modifier.padding(padding), historyRepository) { entry -> prompt = entry.prompt; negativePrompt = entry.negativePrompt; selectedTab = 0 }
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
                     OfflineModelDownloadWorker.enqueue(context)
@@ -126,7 +126,7 @@ private fun CreateScreen(
     steps: Float, onSteps: (Float) -> Unit, cfg: Float, onCfg: (Float) -> Unit,
     width: String, onWidth: (String) -> Unit, height: String, onHeight: (String) -> Unit,
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
-    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit, historyRepository: GenerationHistoryRepository
+    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit, historyRepository: GenerationHistoryRepository, sampler: String, onSampler: (String) -> Unit, scheduler: String, onScheduler: (String) -> Unit
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     var presetMenuExpanded by remember { mutableStateOf(false) }
@@ -198,7 +198,7 @@ private fun CreateScreen(
                     TextButton(onClick = { onAdvanced(!advanced) }) { Text(if (advanced) "Hide advanced settings" else "Advanced settings") }
                     if (advanced) {
                         OutlinedTextField(value = seed, onValueChange = onSeed, modifier = Modifier.fillMaxWidth(), label = { Text("Seed (-1 = random)") })
-                        Text("Sampler and scheduler selection will be added with the inference engine.", color = TextMuted, fontSize = 12.sp)
+                        Text("Sampler", color = TextMuted, fontSize = 12.sp)\n                        SettingsDropdown("Sampler", sampler, listOf("euler", "euler_a", "heun", "dpm2", "dpm++2m", "lcm", "ddim_trailing", "tcd", "lms"), onSampler)\n                        Text("Scheduler", color = TextMuted, fontSize = 12.sp)\n                        SettingsDropdown("Scheduler", scheduler, listOf("discrete", "karras", "exponential", "ays", "gits", "sgm_uniform", "simple", "smoothstep", "kl_optimal", "lcm", "beta"), onScheduler)
                     }
                 }
             }
@@ -239,7 +239,7 @@ private fun CreateScreen(
                         }
                         val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L
                         val generationJob = coroutineScope.async(Dispatchers.IO) {
-                            NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed)
+                            NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed, sampler, scheduler)
                         }
                         var bitmap: Bitmap? = null
                         while (generationJob.isActive) {

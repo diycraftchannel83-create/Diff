@@ -55,6 +55,7 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
                     if (entry.id in expandedMetadata) {
                         Text("Created: " + java.text.DateFormat.getDateTimeInstance().format(java.util.Date(entry.createdAt)), style = MaterialTheme.typography.bodySmall)
                         Text("Resolution: ${entry.width} × ${entry.height} • Steps: ${entry.steps} • CFG: ${entry.cfg} • Seed: ${entry.seed}", style = MaterialTheme.typography.bodySmall)
+                        Text("Sampler: ${entry.sampler} • Scheduler: ${entry.scheduler}", style = MaterialTheme.typography.bodySmall)
                         Text("Prompt: ${entry.prompt}", style = MaterialTheme.typography.bodySmall)
                         Text("Negative prompt: ${entry.negativePrompt.ifBlank { "None" }}", style = MaterialTheme.typography.bodySmall)
                         Text(if (entry.initImagePath != null) "Image-to-image source: available • Strength ${(entry.strength * 100).toInt()}%" else "Mode: Text-to-image", style = MaterialTheme.typography.bodySmall)

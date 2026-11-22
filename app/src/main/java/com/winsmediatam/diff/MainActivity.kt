@@ -72,7 +72,7 @@ fun DiffApp() {
             when (selectedTab) {
                 0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, model, { model = it }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it })
                 1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
-                2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf(".gguf", ".safetensors", ".ckpt", ".pt", ".pth")) }, { item -> repository.delete(item); localModels = repository.list() }, importError)
+                2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError)
                 else -> EmptyScreen(Modifier.padding(padding), "Settings", "Local generation preferences and app configuration.")
             }
         }

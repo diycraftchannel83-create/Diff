@@ -201,16 +201,18 @@ private fun CreateScreen(
                 onGenerating(true); onGenerationMessage("Loading model and generating image…")
                 coroutineScope.launch {
                     try {
-                        val bitmap = withContext(Dispatchers.IO) {
-                            if (loadedModelPath != selectedModel.id) {
+                        val result = withContext(Dispatchers.IO) {
+                            val modelWasLoaded = loadedModelPath != selectedModel.id
+                            if (modelWasLoaded) {
                                 NativeRuntime.loadModel(selectedModel.id, Runtime.getRuntime().availableProcessors().coerceIn(1, 4))
-                                onLoadedModel(selectedModel.id)
                             }
                             val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L
-                            NativeRuntime.generateBitmap(prompt, negative, width.toIntOrNull() ?: 512, height.toIntOrNull() ?: 512, steps.toInt(), cfg, parsedSeed)
+                            val bitmap = NativeRuntime.generateBitmap(prompt, negative, width.toIntOrNull() ?: 512, height.toIntOrNull() ?: 512, steps.toInt(), cfg, parsedSeed)
+                            Pair(bitmap, modelWasLoaded)
                         }
-                        onBitmap(bitmap)
-                        onGenerationMessage(if (bitmap != null) "Generation complete." else "No image was returned.")
+                        if (result.second) onLoadedModel(selectedModel.id)
+                        onBitmap(result.first)
+                        onGenerationMessage(if (result.first != null) "Generation complete." else "No image was returned.")
                     } catch (e: Exception) {
                         onGenerationMessage(e.message ?: "Generation failed.")
                     } finally { onGenerating(false) }

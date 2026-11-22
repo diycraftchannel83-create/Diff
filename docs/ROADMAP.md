@@ -2,53 +2,53 @@
 
 ## Phase 1 — Android foundation
 - [x] Compose Android project, dark studio navigation and prompt controls
-- [x] Model manager import/list/delete and selection persistence
-- [x] Background downloader with progress, cancel and resumable partial-file handling
-- [x] CI workflow configured (build validation deferred)
-- [ ] Confirm baseline build and install on physical ARM64 device
+- [x] Local model import/list/delete and persisted selection
+- [x] Background model downloader with progress, cancellation and resume
+- [x] CI workflow configured (validation intentionally deferred)
+- [ ] Baseline build and install on ARM64 device
 
 ## Phase 2 — Local inference
-- [x] ARM64 CMake/JNI stable-diffusion.cpp integration source
-- [x] Native model load/release, txt2img options and Bitmap conversion source
-- [x] Progress callback and cancellation wiring source
-- [x] Correct context-local progress callback signature against pinned upstream header
-- [x] Device capability report and heuristic RAM/resolution guard
-- [x] Verify upstream API declarations and key names from pinned docs
-- [ ] Compile/link native engine and verify JNI calls
-- [ ] Validate model formats/quantization and generate on-device
-- [ ] Benchmark load/generation, memory and thermal behavior
+- [x] ARM64 native stable-diffusion.cpp JNI integration source
+- [x] Model load/release and text-to-image option wiring
+- [x] Native progress callback, cancellation and bitmap conversion source
+- [x] Sampler/scheduler UI and JNI option wiring
+- [x] RAM/architecture report and heuristic safety guard
+- [ ] Compile/link against pinned upstream revision
+- [ ] Confirm model formats/quantization and on-device generation
+- [ ] Benchmark model load, generation, peak memory and thermals
 
 ## Phase 3 — Image workflows
-- [x] Prompt presets (photo-realistic, cinematic, anime, fantasy, product, portrait, landscape, architecture)
-- [x] Sampler/scheduler UI options and JNI wiring; automatic model defaults preserved (source only)
-- [x] Confirm upstream image keys `init_image`, `strength`, `batch_count`, `sample.method`, `sample.scheduler`
-- [ ] Image-to-image picker, RGB tensor conversion and native JNI pipeline
-- [ ] Inpainting mask editor and `mask_image` native pipeline
-- [ ] Batch generation queue with per-item progress/cancel
-- [ ] Prompt preset editor/custom presets
+- [x] Built-in prompt presets
+- [x] User custom prompt presets: save, select and manage/delete
+- [x] Image-to-image picker, persistent private input copy, preview and strength slider
+- [x] JNI option wiring for init_image and strength (source only)
+- [ ] Validate image-to-image engine API and generation on-device
+- [ ] Inpainting mask editor and mask pipeline
+- [ ] Batch generation queue, per-item progress and cancellation
+- [ ] More verified sampler/scheduler compatibility options
 
 ## Phase 4 — Library
-- [x] Automatically save generated PNGs in private app storage
-- [x] Persist prompt, negative prompt, dimensions, steps, CFG, seed and timestamp
-- [x] Gallery/history view and delete
-- [x] Reuse prompt/negative prompt from gallery
-- [x] Export to Pictures/Diff AI Studio via MediaStore
-- [x] Share images using Android Sharesheet/FileProvider
-- [ ] Favorites, search and filtering
-- [ ] Metadata detail view and sort controls
+- [x] Private PNG generation history with metadata
+- [x] Prompt/negative prompt, dimensions, steps, CFG, seed and timestamp
+- [x] Favorites toggle and persisted favorite state
+- [x] Prompt search and favorites filter
+- [x] Sort newest/oldest/favorites-first
+- [x] Metadata detail view, including image-to-image source/strength
+- [x] Delete, reuse prompt, export to Pictures and Android share
+- [ ] Reuse full image-to-image configuration from history
 - [ ] Upscale workflow
 
 ## Phase 5 — Release quality
-- [x] Model extension unit tests
-- [x] Pre-generation memory/resolution guard source
-- [x] Runtime/privacy information Settings screen
-- [ ] History/preset repository unit tests
-- [ ] UI tests/accessibility review
+- [x] Model extension tests source
+- [x] Heuristic pre-generation RAM/resolution guard
+- [x] Runtime/privacy Settings screen
+- [ ] Unit tests for history and preset persistence
+- [ ] UI tests, accessibility and localization review
 - [ ] Native memory/performance optimization
-- [ ] Device compatibility matrix and real-device tests
-- [ ] Build/install/smoke tests and APK/AAB release pipeline
-- [ ] Privacy policy, model/source licenses and third-party notices
-- [ ] Release checklist and Play Store readiness
+- [ ] Real-device compatibility matrix
+- [ ] Build/install/smoke tests, APK/AAB pipeline
+- [ ] Privacy policy, model licenses and third-party notices
+- [ ] Play Store release checklist
 
-## Current validation status
-Build, CI and device validation are intentionally deferred. Source-level items are not runtime verified. Image-to-image, inpainting, batch, custom presets, favorites/search, upscale, tests and release qualification remain.
+## Validation status
+Source changes are committed incrementally. Build/CI/device validation remains intentionally deferred. New image-to-image JNI options, history/gallery, exports and preset UI are not compile/runtime verified. Production readiness requires completing the validation and remaining workflow items.

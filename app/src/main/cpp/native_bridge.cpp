@@ -63,7 +63,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_ge
 #ifdef DIFF_HAS_SDCPP
  if(!prompt||width<64||height<64||width>2048||height>2048||steps<1||steps>100){throwJava(env,"Invalid generation parameters.");return nullptr;}
  const char* p=env->GetStringUTFChars(prompt,nullptr);const char* n=negative?env->GetStringUTFChars(negative,nullptr):nullptr;const char* sm=sampler?env->GetStringUTFChars(sampler,nullptr):nullptr;const char* sc=scheduler?env->GetStringUTFChars(scheduler,nullptr):nullptr;if(!p)return nullptr;
- std::lock_guard<std::mutex> lock(g_ctx_mutex);if(!g_ctx){env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);throwJava(env,"Load a model before generating.");return nullptr;}
+ std::lock_guard<std::mutex> lock(g_ctx_mutex);if(!g_ctx){env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);if(sm)env->ReleaseStringUTFChars(sampler,sm);if(sc)env->ReleaseStringUTFChars(scheduler,sc);throwJava(env,"Load a model before generating.");return nullptr;}
  sd_img_gen_opt_t* opts=sd_img_gen_opt_create();sd_result_t* result=nullptr;sd_status_t status=opts?sd_opt_set_string(opts,"prompt",p):SD_STATUS_OUT_OF_MEMORY;
  if(status==SD_STATUS_OK&&n&&n[0])status=sd_opt_set_string(opts,"negative_prompt",n);
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"width",width);

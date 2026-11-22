@@ -198,7 +198,22 @@ private fun CreateScreen(
             Button(onClick = {
                 if (prompt.isBlank()) { onGenerationMessage("Please enter a prompt first."); return@Button }
                 if (selectedModel == null) { onGenerationMessage("Select a local model first."); return@Button }
-                onGenerating(true); onGenerationMessage("Loading model and generating image…")
+                val requestedWidth = width.toIntOrNull()
+                val requestedHeight = height.toIntOrNull()
+                if (requestedWidth == null || requestedHeight == null || requestedWidth !in 256..1024 || requestedHeight !in 256..1024 || requestedWidth % 64 != 0 || requestedHeight % 64 != 0) {
+                    onGenerationMessage("Resolution must be 256–1024 and divisible by 64.")
+                    return@Button
+                }
+                val activityManager = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                val memoryInfo = android.app.ActivityManager.MemoryInfo()
+                activityManager.getMemoryInfo(memoryInfo)
+                val requiredMemoryMb = (requestedWidth.toLong() * requestedHeight * 8L / (1024L * 1024L)).coerceAtLeast(512L)
+                val availableMemoryMb = memoryInfo.availMem / (1024L * 1024L)
+                if (memoryInfo.lowMemory || availableMemoryMb < requiredMemoryMb) {
+                    onGenerationMessage("Not enough available RAM for ${requestedWidth}×${requestedHeight}. Available ${availableMemoryMb} MB; estimated safe minimum ${requiredMemoryMb} MB. Try 512×512.")
+                    return@Button
+                }
+                onGenerating(true); onGenerationMessage("RAM check passed (${availableMemoryMb} MB available). Loading model and generating…")
                 coroutineScope.launch {
                     try {
                         val result = withContext(Dispatchers.IO) {
@@ -207,7 +222,7 @@ private fun CreateScreen(
                                 NativeRuntime.loadModel(selectedModel.id, Runtime.getRuntime().availableProcessors().coerceIn(1, 4))
                             }
                             val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L
-                            val bitmap = NativeRuntime.generateBitmap(prompt, negative, width.toIntOrNull() ?: 512, height.toIntOrNull() ?: 512, steps.toInt(), cfg, parsedSeed)
+                            val bitmap = NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed)
                             Pair(bitmap, modelWasLoaded)
                         }
                         if (result.second) onLoadedModel(selectedModel.id)

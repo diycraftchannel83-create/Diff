@@ -163,7 +163,7 @@ private fun CreateScreen(
                 normalized.outputStream().use { output -> check(decoded.compress(Bitmap.CompressFormat.PNG, 100, output)) { "Could not normalize source image" } }
                 file.delete()
                 normalized.absolutePath to decoded
-            } }.onSuccess { pair -> initImagePath = pair.first; initImagePreview = pair.second }.onFailure { onGenerationMessage(it.message ?: "Image import failed") }
+            } }.onSuccess { pair -> initImagePath = pair.first; initImagePreview = pair.second; maskImagePath = null }.onFailure { onGenerationMessage(it.message ?: "Image import failed") }
         }
     }
     val deviceCapabilities = remember(context) { DeviceCapabilities.current(context) }

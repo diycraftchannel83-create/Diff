@@ -13,4 +13,4 @@ Android-native, offline-first AI image generation studio.
 ## Important
 The stable-diffusion.cpp native library is now configured to compile/link into the Android ARM64 JNI library. The JNI inference API and model loading are not wired yet. Imported files still cannot generate images, and Generate remains disabled. Model selection and basic device readiness information are now implemented.
 
-Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md). Engine notes: [docs/ENGINE_NOTES.md](docs/ENGINE_NOTES.md).
+Offline model downloads: [docs/MODEL_DOWNLOADS.md](docs/MODEL_DOWNLOADS.md). Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md). Engine notes: [docs/ENGINE_NOTES.md](docs/ENGINE_NOTES.md).

@@ -28,3 +28,5 @@ Build/CI and device validation are deferred. Native API wiring, image-to-image, 
 - [Roadmap](docs/ROADMAP.md)
 - [Model downloads](docs/MODEL_DOWNLOADS.md)
 - [Engine notes](docs/ENGINE_NOTES.md)
+- [Privacy policy draft](PRIVACY.md)
+- [Third-party notices checklist](THIRD_PARTY_NOTICES.md)

@@ -156,7 +156,10 @@ private fun CreateScreen(
                 BitmapFactory.decodeFile(file.absolutePath, bounds)
                 val sample = maxOf(1, (maxOf(bounds.outWidth, bounds.outHeight) + 2047) / 2048)
                 val decoded = BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample }) ?: error("Selected image could not be decoded")
-                file.absolutePath to decoded
+                val normalized = File(file.parentFile, "img2img_source_${System.currentTimeMillis()}_scaled.png")
+                normalized.outputStream().use { output -> check(decoded.compress(Bitmap.CompressFormat.PNG, 100, output)) { "Could not normalize source image" } }
+                file.delete()
+                normalized.absolutePath to decoded
             } }.onSuccess { pair -> initImagePath = pair.first; initImagePreview = pair.second }.onFailure { onGenerationMessage(it.message ?: "Image import failed") }
         }
     }

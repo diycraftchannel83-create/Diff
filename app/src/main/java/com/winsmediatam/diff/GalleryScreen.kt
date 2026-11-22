@@ -39,9 +39,11 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
             Text("IMAGE HISTORY", style = MaterialTheme.typography.headlineSmall)
             Text("Generated images are saved privately on this device.", style = MaterialTheme.typography.bodySmall)
         }
+        item { OutlinedTextField(value = searchText, onValueChange = { searchText = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Search prompts") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true) }
+        item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { FilterChip(selected = favoritesOnly, onClick = { favoritesOnly = !favoritesOnly }, label = { Text("Favorites") }, leadingIcon = { Icon(Icons.Default.Favorite, null) }); Box { OutlinedButton(onClick = { sortMenu = true }) { Text("Sort: $sortOrder") }; DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) { listOf("Newest", "Oldest", "Favorites first").forEach { option -> DropdownMenuItem(text = { Text(option) }, onClick = { sortOrder = option; sortMenu = false }) } } } } }
         actionMessage?.let { item { Text(it, color = MaterialTheme.colorScheme.primary) } }
-        if (entries.isEmpty()) item { Text("No saved images yet. Generate an image to add it here.") }
-        items(entries, key = { it.id }) { entry ->
+        if (entries.isEmpty()) item { Text("No saved images yet. Generate an image to add it here.") } else if (filteredEntries.isEmpty()) item { Text("No images match this filter.") }
+        items(filteredEntries, key = { it.id }) { entry ->
             val bitmap = remember(entry.filePath) { BitmapFactory.decodeFile(entry.filePath) }
             Card(shape = RoundedCornerShape(16.dp)) {
                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -57,6 +59,7 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
                         Text("Negative prompt: ${entry.negativePrompt.ifBlank { "None" }}", style = MaterialTheme.typography.bodySmall)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedButton(onClick = { val updated = history.toggleFavorite(entry); entries = entries.map { if (it.id == entry.id) updated else it } }) { Icon(Icons.Default.Favorite, null, tint = if (entry.favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant); Text(if (entry.favorite) "Favorited" else "Favorite") }
                         OutlinedButton(onClick = { onReusePrompt(entry) }) { Text("Reuse prompt") }
                         OutlinedButton(onClick = { runCatching { history.exportToPictures(entry) }.onSuccess { actionMessage = "Exported to Pictures/Diff AI Studio" }.onFailure { actionMessage = it.message ?: "Export failed" } }) { Text("Export") }
                         OutlinedButton(onClick = { runCatching {

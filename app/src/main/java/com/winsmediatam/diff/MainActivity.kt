@@ -1,6 +1,10 @@
 package com.winsmediatam.diff
 
 import android.os.Bundle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalContext
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -32,6 +36,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun DiffApp() {
+    val context = LocalContext.current
+    val repository = remember(context) { ModelRepository(context) }
+    var localModels by remember { mutableStateOf(repository.list()) }
+    var importError by remember { mutableStateOf<String?>(null) }
+    val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            runCatching { repository.importModel(uri) }
+                .onSuccess { localModels = repository.list(); importError = null }
+                .onFailure { importError = it.message ?: "Import failed" }
+        }
+    }
     var selectedTab by remember { mutableStateOf(0) }
     var prompt by remember { mutableStateOf("") }
     var negativePrompt by remember { mutableStateOf("") }
@@ -57,7 +72,7 @@ fun DiffApp() {
             when (selectedTab) {
                 0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, model, { model = it }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it })
                 1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
-                2 -> EmptyScreen(Modifier.padding(padding), "Model Manager", "Import or download compatible models to your device.")
+                2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf(".gguf", ".safetensors", ".ckpt", ".pt", ".pth")) }, { item -> repository.delete(item); localModels = repository.list() }, importError)
                 else -> EmptyScreen(Modifier.padding(padding), "Settings", "Local generation preferences and app configuration.")
             }
         }
@@ -128,6 +143,44 @@ private fun CreateScreen(
 @Composable
 private fun DimensionField(label: String, value: String, onValue: (String) -> Unit, modifier: Modifier) {
     OutlinedTextField(value = value, onValueChange = { if (it.length <= 4 && it.all(Char::isDigit)) onValue(it) }, modifier = modifier, label = { Text(label) }, singleLine = true)
+}
+
+@Composable
+private fun ModelManagerScreen(modifier: Modifier, models: List<LocalModel>, onImport: () -> Unit, onDelete: (LocalModel) -> Unit, error: String?) {
+    LazyColumn(modifier.fillMaxSize().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item {
+            Text("LOCAL MODELS", fontWeight = FontWeight.Black, fontSize = 22.sp)
+            Text("Import compatible model files. Files are stored privately in app storage.", color = TextMuted, fontSize = 13.sp)
+        }
+        item {
+            Button(onClick = onImport, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.FileOpen, null); Spacer(Modifier.width(8.dp)); Text("Import model file")
+            }
+        }
+        if (error != null) item { Text(error, color = Color(0xFFFF6B6B)) }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark)) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Formats", fontWeight = FontWeight.Bold)
+                    Text("GGUF, SafeTensors, checkpoint files. Compatibility is engine/model dependent; inference engine integration is still in progress.", color = TextMuted, fontSize = 12.sp)
+                }
+            }
+        }
+        if (models.isEmpty()) item { Text("No local models yet.", color = TextMuted) }
+        items(models, key = { it.id }) { model ->
+            Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark), shape = RoundedCornerShape(14.dp)) {
+                Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Storage, null, tint = Accent, modifier = Modifier.size(30.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(model.name, fontWeight = FontWeight.SemiBold)
+                        Text("${model.fileName} • ${ModelRepository.formatSize(model.sizeBytes)}", color = TextMuted, fontSize = 12.sp)
+                    }
+                    IconButton(onClick = { onDelete(model) }) { Icon(Icons.Default.Delete, "Delete", tint = Color(0xFFFF6B6B)) }
+                }
+            }
+        }
+    }
 }
 
 @Composable

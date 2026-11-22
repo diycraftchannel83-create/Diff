@@ -1,15 +1,16 @@
 # Diff AI Studio
 
-Android-first local AI image generation studio. Current build is a Compose scaffold with a native JNI status bridge and local model-file manager.
+Android-native, offline-first AI image generation studio.
 
-## Current status
-- Android Kotlin + Jetpack Compose UI
-- Debug APK CI workflow
-- ARM64 JNI/CMake bridge scaffold
-- Prompt and generation parameter UI
-- Model import from Android document picker to app-private storage
-- Imported model listing and deletion
+## Implemented
+- Kotlin + Jetpack Compose foundation and dark studio UI
+- ARM64 JNI/CMake status bridge
+- Prompt, negative prompt, dimensions, steps, CFG and seed controls
+- Local model manager: import from Android file picker, list, size display and delete
+- Supported file extension validation and safer temporary import/finalize flow
+- GitHub Actions Debug APK build
 
-**Inference is not integrated yet.** Imported files are managed locally, but generation remains disabled until the native diffusion engine is integrated and tested.
+## Important
+The native diffusion engine is not integrated yet. Model import and management do not imply that files can currently be loaded or used for generation. Generation remains disabled until inference is implemented and verified.
 
-See [Roadmap](docs/ROADMAP.md) and [Engine notes](docs/ENGINE_NOTES.md).
+Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md). Engine notes: [docs/ENGINE_NOTES.md](docs/ENGINE_NOTES.md).

@@ -19,12 +19,16 @@ class ModelRepository(context: Context) {
     fun importModel(uri: Uri): LocalModel {
         val name = queryDisplayName(uri).ifBlank { "model_${UUID.randomUUID()}.gguf" }
         val safeName = name.replace(Regex("[^A-Za-z0-9._-]"), "_")
+        require(safeName.substringAfterLast(".", "").lowercase() in setOf("gguf", "safetensors", "ckpt", "pt", "pth")) { "Unsupported model file type" }
         val target = File(folder, safeName)
+        val temp = File(folder, "${safeName}.importing")
         appContext.contentResolver.openInputStream(uri).use { input ->
             requireNotNull(input) { "Unable to open selected file" }
-            target.outputStream().use { output -> input.copyTo(output) }
+            temp.outputStream().use { output -> input.copyTo(output) }
         }
-        require(target.length() > 0) { "Imported file is empty" }
+        require(temp.length() > 0) { "Imported file is empty" }
+        if (target.exists()) target.delete()
+        require(temp.renameTo(target)) { "Could not finalize imported model file" }
         prefs.edit().putString(target.absolutePath, target.name).apply()
         return LocalModel(target.absolutePath, target.nameWithoutExtension, target.name, target.length())
     }

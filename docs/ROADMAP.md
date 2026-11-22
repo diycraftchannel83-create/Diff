@@ -17,6 +17,8 @@
 - [ ] Build and integrate diffusion engine
 - [ ] Device benchmark and memory capability checks
 - [x] Local model file import manager (SAF, app-private storage, list and delete)
+- [x] Model extension validation and temporary-file import safety
+- [x] Model Manager UI connected to import/list/delete actions
 - [ ] Model download manager (remote catalog and resumable download)
 - [ ] Generation progress, cancellation and errors
 - [ ] Real txt2img pipeline

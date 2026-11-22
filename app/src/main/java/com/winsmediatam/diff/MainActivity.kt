@@ -135,6 +135,7 @@ private fun CreateScreen(
     var modelMenuExpanded by remember { mutableStateOf(false) }
     var presetMenuExpanded by remember { mutableStateOf(false) }
     val promptPresets = PromptPresets.all
+    val context = LocalContext.current
     val userPresetRepository = remember(context) { PromptPresetRepository(context) }
     var userPresets by remember { mutableStateOf(userPresetRepository.list()) }
     var showSavePreset by remember { mutableStateOf(false) }

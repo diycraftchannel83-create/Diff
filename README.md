@@ -17,11 +17,11 @@ Android-native, offline-first AI image generation studio (ARM64-first).
 - Sequential batch generation (1–4), aggregate progress, cancel and per-image history source
 - Private generation history and metadata; capped at 100 entries with old generated PNG pruning
 - Gallery favorites, prompt search, filtering, sorting and metadata details
-- Reuse prompt, delete, export to Pictures and share through Android Sharesheet
+- Local 2× filtered image resize (non-AI), reuse prompt, delete, export and Android share
 - Runtime/privacy information screen
 
 ## Validation caveat
-Build/CI and device validation are deferred. Native API wiring, image-to-image, batch generation, inpainting, history, export/share and UI have not been compiled or runtime tested. This is not production-ready.
+Build/CI and device validation are deferred. Native API wiring, image-to-image, batch generation, inpainting, resize, history, export/share and UI have not been compiled or runtime tested. This is not production-ready.
 
 ## Docs
 - [Roadmap](docs/ROADMAP.md)

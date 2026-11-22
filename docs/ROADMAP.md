@@ -7,7 +7,7 @@
 - [x] Prompt and negative prompt controls
 - [x] Basic generation parameters (steps, CFG, dimensions, seed)
 - [x] Android CI workflow
-- [ ] Verify first CI build
+- [x] Verify first CI build
 
 ## Phase 2 — Local inference
 - [x] Android arm64 native CMake integration
@@ -38,7 +38,7 @@
 - [ ] Image upscale workflow
 
 ## Phase 5 — Release quality
-- [ ] Unit tests
+- [x] Unit tests (model file extension rules)
 - [ ] UI tests
 - [ ] Memory/performance optimization
 - [ ] Device compatibility matrix

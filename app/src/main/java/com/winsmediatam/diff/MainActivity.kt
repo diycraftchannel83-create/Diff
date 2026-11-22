@@ -141,7 +141,21 @@ private fun CreateScreen(
     var showManagePresets by remember { mutableStateOf(false) }
     var presetName by remember { mutableStateOf("") }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    var initImagePath by remember { mutableStateOf<String?>(null) }
+    var initImagePreview by remember { mutableStateOf<Bitmap?>(null) }
+    var imageStrength by remember { mutableFloatStateOf(0.65f) }
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) coroutineScope.launch {
+            runCatching { withContext(Dispatchers.IO) {
+                val file = File(context.cacheDir, "img2img_source_${System.currentTimeMillis()}.png")
+                context.contentResolver.openInputStream(uri)?.use { input -> file.outputStream().use { output -> input.copyTo(output) } } ?: error("Could not open selected image")
+                val decoded = BitmapFactory.decodeFile(file.absolutePath) ?: error("Selected image could not be decoded")
+                file.absolutePath to decoded
+            } }.onSuccess { pair -> initImagePath = pair.first; initImagePreview = pair.second }.onFailure { onGenerationMessage(it.message ?: "Image import failed") }
+        }
+    }
     val deviceCapabilities = remember(context) { DeviceCapabilities.current(context) }
     LazyColumn(modifier.fillMaxSize().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {

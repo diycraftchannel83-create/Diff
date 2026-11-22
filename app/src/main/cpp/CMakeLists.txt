@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(diff_native_bridge LANGUAGES CXX)
+project(diff_native_bridge LANGUAGES C CXX)
 
 option(DIFF_ENABLE_SDCPP "Fetch and compile stable-diffusion.cpp native backend" ON)
 

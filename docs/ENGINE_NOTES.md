@@ -9,7 +9,7 @@ Diff targets offline on-device inference, arm64-v8a first.
 - Bridge scaffolding only: no model inference or diffusion engine is compiled in.
 
 ## Candidate engine
-Pinned upstream `stable-diffusion.cpp` revision `532d2c15c430a785a712b2d94281f04e733008a4` is fetched via CMake FetchContent with recursive submodules. Android app native build is configured for ARM64 CPU-only baseline (OpenMP/OpenCL/Vulkan disabled). Build success only verifies native compilation/linking; model inference API is not yet wired into JNI. Evaluate Vulkan/OpenCL acceleration experimentally after CPU baseline.
+CMake root enables both C and CXX because GGML performs C compiler feature checks during configure. Pinned upstream `stable-diffusion.cpp` revision `532d2c15c430a785a712b2d94281f04e733008a4` is fetched via CMake FetchContent with recursive submodules. Android app native build is configured for ARM64 CPU-only baseline (OpenMP/OpenCL/Vulkan disabled). Build success only verifies native compilation/linking; model inference API is not yet wired into JNI. Evaluate Vulkan/OpenCL acceleration experimentally after CPU baseline.
 
 ## Integration requirements
 - Isolate native engine symbols/shared library to avoid collisions.

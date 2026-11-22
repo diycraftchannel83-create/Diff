@@ -18,6 +18,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.foundation.Image
+import android.graphics.Bitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -82,6 +87,10 @@ fun DiffApp() {
     var height by remember { mutableStateOf("512") }
     var seed by remember { mutableStateOf("-1") }
     var showAdvanced by remember { mutableStateOf(false) }
+    var generatedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var generating by remember { mutableStateOf(false) }
+    var generationMessage by remember { mutableStateOf("Select a compatible GGUF model to begin.") }
+    var loadedModelPath by remember { mutableStateOf<String?>(null) }
 
     MaterialTheme(colorScheme = darkColorScheme(primary = Accent, background = Bg, surface = SurfaceDark)) {
         Scaffold(containerColor = Bg, bottomBar = {
@@ -95,7 +104,7 @@ fun DiffApp() {
             }
         }) { padding ->
             when (selectedTab) {
-                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it })
+                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it })
                 1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
                     OfflineModelDownloadWorker.enqueue(context)
@@ -179,10 +188,37 @@ private fun CreateScreen(
             }
         }
         item {
-            Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(15.dp)) {
-                Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(8.dp)); Text("GENERATION ENGINE NOT READY")
+            generatedBitmap?.let { bitmap ->
+                Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark), shape = RoundedCornerShape(18.dp)) {
+                    Image(bitmap.asImageBitmap(), contentDescription = "Generated image preview", modifier = Modifier.fillMaxWidth())
+                }
             }
-            Text(if (selectedModel == null) "Import a compatible model and select it above. Inference is not yet connected." else "Model selection is saved. Native loading and inference integration are next.", color = TextMuted, fontSize = 12.sp)
+            Button(onClick = {
+                if (prompt.isBlank()) { onGenerationMessage("Please enter a prompt first."); return@Button }
+                if (selectedModel == null) { onGenerationMessage("Select a local model first."); return@Button }
+                onGenerating(true); onGenerationMessage("Loading model and generating image…")
+                coroutineScope.launch {
+                    try {
+                        val bitmap = withContext(Dispatchers.IO) {
+                            if (loadedModelPath != selectedModel.id) {
+                                NativeRuntime.loadModel(selectedModel.id, deviceCapabilities.recommendedThreads)
+                                onLoadedModel(selectedModel.id)
+                            }
+                            val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L
+                            NativeRuntime.generateBitmap(prompt, negative, width.toIntOrNull() ?: 512, height.toIntOrNull() ?: 512, steps.toInt(), cfg, parsedSeed)
+                        }
+                        onBitmap(bitmap)
+                        onGenerationMessage(if (bitmap != null) "Generation complete." else "No image was returned.")
+                    } catch (e: Exception) {
+                        onGenerationMessage(e.message ?: "Generation failed.")
+                    } finally { onGenerating(false) }
+                }
+            }, enabled = !generating, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(15.dp)) {
+                if (generating) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp) else Icon(Icons.Default.AutoAwesome, null)
+                Spacer(Modifier.width(8.dp)); Text(if (generating) "GENERATING…" else "GENERATE IMAGE")
+            }
+            Text(generationMessage, color = TextMuted, fontSize = 12.sp)
+            Text("Native ARM64 inference is connected. Model compatibility depends on the selected checkpoint.", color = TextMuted, fontSize = 12.sp)
         }
     }
 }

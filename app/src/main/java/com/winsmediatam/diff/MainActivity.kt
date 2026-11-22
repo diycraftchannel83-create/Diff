@@ -141,7 +141,7 @@ private fun CreateScreen(
     var showSavePreset by remember { mutableStateOf(false) }
     var showManagePresets by remember { mutableStateOf(false) }
     var presetName by remember { mutableStateOf("") }
-    var batchCount by remember { mutableIntStateOf(1) } }
+    var batchCount by remember { mutableIntStateOf(1) }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
     val coroutineScope = rememberCoroutineScope()
     var initImagePath by remember { mutableStateOf<String?>(null) }

@@ -38,6 +38,7 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
         item {
             Text("IMAGE HISTORY", style = MaterialTheme.typography.headlineSmall)
             Text("Generated images are saved privately on this device.", style = MaterialTheme.typography.bodySmall)
+            Text("AI Upscale is not available yet. The 2× Resize action uses conventional filtering, not AI.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
         }
         item { OutlinedTextField(value = searchText, onValueChange = { searchText = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Search prompts") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true) }
         item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { FilterChip(selected = favoritesOnly, onClick = { favoritesOnly = !favoritesOnly }, label = { Text("Favorites") }, leadingIcon = { Icon(Icons.Default.Favorite, null) }); Box { OutlinedButton(onClick = { sortMenu = true }) { Text("Sort: $sortOrder") }; DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) { listOf("Newest", "Oldest", "Favorites first").forEach { option -> DropdownMenuItem(text = { Text(option) }, onClick = { sortOrder = option; sortMenu = false }) } } } } }

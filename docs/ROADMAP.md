@@ -1,50 +1,48 @@
 # Diff AI Studio Roadmap
 
 ## Phase 1 — Android foundation
-- [x] Empty repository bootstrap
-- [x] Kotlin + Jetpack Compose project
-- [x] Dark UI scaffold and bottom navigation
-- [x] Prompt and negative prompt controls
-- [x] Basic generation parameters (steps, CFG, dimensions, seed)
-- [x] Android CI workflow
-- [x] Verify first CI build
+- [x] Compose Android project, dark studio navigation and prompt controls
+- [x] Model manager import/list/delete and selection persistence
+- [x] Background downloader with progress, cancel and resumable partial-file handling
+- [x] CI workflow configured (build validation is currently deferred per developer workflow request)
+- [ ] Confirm baseline build and install on a physical ARM64 device
 
 ## Phase 2 — Local inference
-- [x] Android arm64 native CMake integration
-- [x] JNI bridge skeleton and architecture reporting
-- [x] Native runtime status displayed in app
-- [x] Pin stable-diffusion.cpp revision (upstream commit 532d2c1)
-- [x] Build stable-diffusion.cpp into Android ARM64 JNI shared library (CPU baseline)\n- [x] Wire stable-diffusion.cpp opaque API to JNI model loading and basic txt2img generation (source integration; build validation pending)
-- [x] Basic device RAM/architecture capability report and resolution recommendation\n- [x] Pre-generation memory availability check and conservative resolution guard (source; device validation pending)
-- [ ] Device benchmark and memory capability checks
-- [x] Local model file import manager (SAF, app-private storage, list and delete)
-- [x] Model extension validation and temporary-file import safety
-- [x] Model Manager UI connected to import/list/delete actions\n- [x] Create screen model selector connected to imported models and persisted selection
-- [x] In-app starter model downloader (SD 1.5 Q8 GGUF catalog entry, progress and cancel, ZIP extraction/install)\n- [x] Resumable model download (keeps partial file on cancel/interruption; resumes using HTTP Range when supported)\n- [x] Background transfer worker infrastructure (foreground notification, progress updates, unique-work enqueue/cancel API)\n- [x] Connect Model Manager download/cancel controls and WorkManager progress state
-- [x] Native generation progress callback and Compose progress display (source; build validation pending)
-- [x] Native generation cancellation request via stable-diffusion.cpp cancel API (source; runtime validation pending)
-- [x] Native generation errors surfaced to Create screen
-- [x] Real txt2img pipeline source wiring (model load, prompt/negative prompt, dimensions, steps, CFG, seed, bitmap preview; validation pending)
+- [x] ARM64 CMake/JNI stable-diffusion.cpp integration source
+- [x] Native model load/release, txt2img option wiring and Bitmap conversion source
+- [x] Progress callback and cancellation wiring source
+- [x] Device capability report and conservative RAM/resolution guard
+- [ ] Confirm native API signatures against pinned upstream revision and compile/link
+- [ ] Validate model formats and quantization compatibility
+- [ ] Benchmark model load, generation, peak RAM and thermal behavior on devices
 
 ## Phase 3 — Image workflows
-- [ ] Image-to-image
-- [ ] Inpainting mask editor
-- [ ] Batch generation
-- [ ] Sampler and scheduler controls
-- [ ] Prompt presets
+- [x] Prompt preset library (photorealistic, cinematic, anime, fantasy, product, portrait, landscape, architecture)
+- [ ] Image-to-image: image picker, native input tensor conversion and verified upstream API wiring
+- [ ] Inpainting mask editor and native mask pipeline
+- [ ] Batch generation queue and per-item progress/cancel
+- [ ] Sampler/scheduler controls after native API compatibility verification
+- [ ] Prompt preset editor and user-saved presets
 
 ## Phase 4 — Library
-- [ ] Gallery database and thumbnails
-- [ ] Favorites and history
-- [ ] Metadata view
-- [ ] Export/share
+- [x] Private image history: automatically save successful generations
+- [x] Generation metadata: prompt, negative prompt, dimensions, steps, CFG, seed and timestamp
+- [x] History/gallery view and deletion
+- [ ] Favorites and filters
+- [ ] Metadata details/edit/copy prompt
+- [ ] Export to public Pictures/Downloads using MediaStore
+- [ ] Share image via Android Sharesheet
 - [ ] Image upscale workflow
 
 ## Phase 5 — Release quality
-- [x] Unit tests (model file extension rules)
-- [ ] UI tests
-- [x] Pre-generation low-memory / resolution safety guard
-- [ ] Memory/performance optimization
-- [ ] Device compatibility matrix
-- [ ] Release APK/AAB
-- [ ] Privacy and licensing documentation
+- [x] Model file extension unit tests
+- [x] Pre-generation low-memory and resolution safety guard (source)
+- [ ] UI and repository unit tests for generation history, presets and gallery
+- [ ] Memory/performance optimization and native error handling review
+- [ ] Device compatibility matrix and real-device test plan/results
+- [ ] Build, install, smoke test, APK/AAB release pipeline
+- [ ] Privacy policy, model/source licenses and third-party notices
+- [ ] Release checklist, versioning and Play Store readiness
+
+## Current validation status
+Source work is being committed in small increments. **Build/CI/device validation is intentionally not being run yet.** Items marked complete are implemented at source level, not necessarily build- or runtime-verified. Native inference, image workflows, public export/share and release qualification remain pending.

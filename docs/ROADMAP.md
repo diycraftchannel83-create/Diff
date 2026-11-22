@@ -20,22 +20,24 @@
 ## Phase 3 — Image workflows
 - [x] Built-in prompt presets
 - [x] User custom prompt presets: save, select and manage/delete
-- [x] Image-to-image picker, persistent private input copy, preview and strength slider
+- [x] Image-to-image picker, persistent private input copy, downscaled preview/input and strength slider
 - [x] JNI option wiring for init_image and strength (source only)
 - [x] Sequential batch generation up to 4 images with aggregate progress, cancel and per-image history (source)
-- [ ] Validate image-to-image and batch native API behavior on-device
-- [ ] Inpainting mask editor and mask pipeline
-- [ ] Reuse full image-to-image configuration from history
+- [x] Interactive inpainting mask editor (paint/clear/apply) and mask_image JNI option wiring (source)
+- [ ] Validate image-to-image, batch and inpainting native API behavior on-device
+- [ ] Reuse full image-to-image/mask configuration from history
 - [ ] More verified sampler/scheduler compatibility options
 
 ## Phase 4 — Library
 - [x] Private PNG generation history with metadata
 - [x] Prompt/negative prompt, dimensions, steps, CFG, seed and timestamp
+- [x] Image-to-image source path, strength and inpainting mask metadata
 - [x] Favorites toggle and persisted favorite state
 - [x] Prompt search and favorites filter
 - [x] Sort newest/oldest/favorites-first
-- [x] Metadata detail view, including image-to-image source/strength and batch seed
+- [x] Metadata detail view
 - [x] Delete, reuse prompt, export to Pictures and Android share
+- [x] History cap with pruning of evicted generated PNGs
 - [ ] Upscale workflow
 
 ## Phase 5 — Release quality
@@ -51,4 +53,4 @@
 - [ ] Play Store release checklist
 
 ## Validation status
-Source changes are committed incrementally. Build/CI/device validation remains intentionally deferred. Image-to-image, batch, gallery/history, export/share and preset UI are not compile/runtime verified. Production readiness requires completing the validation and remaining workflow items.
+Source changes are committed incrementally. Build/CI/device validation remains intentionally deferred. Image-to-image, batch, inpainting, gallery/history, export/share and preset UI are not compile/runtime verified. Production readiness requires completing validation and remaining workflow items.

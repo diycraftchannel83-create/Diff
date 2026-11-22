@@ -31,3 +31,8 @@ Build/CI and device validation are deferred. Native API wiring, image-to-image, 
 - [Privacy policy draft](PRIVACY.md)
 - [Third-party notices checklist](THIRD_PARTY_NOTICES.md)
 - [Release qualification checklist](RELEASE_CHECKLIST.md)
+
+
+### Generation request validation
+
+Generation inputs are checked before native inference: prompt, 256–1024 dimensions (multiples of 64), steps, CFG range, batch size, and fixed-seed overflow. Unit test source is included; tests/build are intentionally not run yet.

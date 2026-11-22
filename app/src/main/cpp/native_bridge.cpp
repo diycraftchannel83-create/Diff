@@ -59,10 +59,10 @@ extern "C" JNIEXPORT jintArray JNICALL Java_com_winsmediatam_diff_NativeRuntime_
  jint values[2]={g_progress_step.load(),g_progress_total.load()};
  jintArray arr=env->NewIntArray(2); if(arr) env->SetIntArrayRegion(arr,0,2,values); return arr;
 }
-extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_generateBitmap(JNIEnv* env,jobject,jstring prompt,jstring negative,jint width,jint height,jint steps,jfloat cfg,jlong seed) {
+extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_generateBitmap(JNIEnv* env,jobject,jstring prompt,jstring negative,jint width,jint height,jint steps,jfloat cfg,jlong seed,jstring sampler,jstring scheduler) {
 #ifdef DIFF_HAS_SDCPP
  if(!prompt||width<64||height<64||width>2048||height>2048||steps<1||steps>100){throwJava(env,"Invalid generation parameters.");return nullptr;}
- const char* p=env->GetStringUTFChars(prompt,nullptr);const char* n=negative?env->GetStringUTFChars(negative,nullptr):nullptr;if(!p)return nullptr;
+ const char* p=env->GetStringUTFChars(prompt,nullptr);const char* n=negative?env->GetStringUTFChars(negative,nullptr):nullptr;const char* sm=sampler?env->GetStringUTFChars(sampler,nullptr):nullptr;const char* sc=scheduler?env->GetStringUTFChars(scheduler,nullptr):nullptr;if(!p)return nullptr;
  std::lock_guard<std::mutex> lock(g_ctx_mutex);if(!g_ctx){env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);throwJava(env,"Load a model before generating.");return nullptr;}
  sd_img_gen_opt_t* opts=sd_img_gen_opt_create();sd_result_t* result=nullptr;sd_status_t status=opts?sd_opt_set_string(opts,"prompt",p):SD_STATUS_OUT_OF_MEMORY;
  if(status==SD_STATUS_OK&&n&&n[0])status=sd_opt_set_string(opts,"negative_prompt",n);
@@ -71,9 +71,9 @@ extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_ge
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"seed",seed);
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"sample.steps",steps);
  if(status==SD_STATUS_OK)status=sd_opt_set_float(opts,"sample.guidance.txt_cfg",cfg);
- if(status==SD_STATUS_OK)status=sd_opt_set_string(opts,"sample.method","euler");
+ if(status==SD_STATUS_OK&&sm&&sm[0])status=sd_opt_set_string(opts,"sample.method",sm);\n if(status==SD_STATUS_OK&&sc&&sc[0])status=sd_opt_set_string(opts,"sample.scheduler",sc);
  if(status==SD_STATUS_OK){ g_progress_step.store(0); g_progress_total.store(0); sd_set_generation_progress_callback(g_ctx, progressCallback, nullptr); status=sd_generate_image(g_ctx,opts,&result); sd_set_generation_progress_callback(g_ctx,nullptr,nullptr); }
- env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);if(opts)sd_opt_free(opts);
+ env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);if(sm)env->ReleaseStringUTFChars(sampler,sm);if(sc)env->ReleaseStringUTFChars(scheduler,sc);if(opts)sd_opt_free(opts);
  if(status!=SD_STATUS_OK||!result||sd_result_get_image_count(result)==0){const char* err=sd_get_last_error();throwJava(env,err?err:"Image generation failed.");if(result)sd_result_free(result);return nullptr;}
  const sd_tensor_t* tensor=sd_result_get_image(result,0);if(!tensor||sd_tensor_type(tensor)!=SD_TENSOR_U8||sd_tensor_rank(tensor)!=3){sd_result_free(result);throwJava(env,"Unsupported native output tensor.");return nullptr;}
  int64_t channels=sd_tensor_dim(tensor,0),outW=sd_tensor_dim(tensor,1),outH=sd_tensor_dim(tensor,2);const uint8_t* bytes=(const uint8_t*)sd_tensor_data(tensor);

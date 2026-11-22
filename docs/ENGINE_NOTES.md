@@ -1,22 +1,25 @@
 # Engine Evaluation Notes
 
-Diff targets offline on-device inference, arm64-v8a first.
+Diff AI Studio targets offline on-device inference, ARM64 first.
 
-## Native bridge status
-- Android Gradle external native build (CMake 3.22.1)
-- JNI shared library `libdiff_native.so`
-- Runtime architecture and bridge status are exposed to Compose UI
-- Bridge scaffolding only: no model inference or diffusion engine is compiled in.
+## Current source status
+- Android CMake/JNI bridge configured to fetch a pinned stable-diffusion.cpp revision
+- Native model loading and txt2img option wiring are implemented in source
+- Progress callback, cancellation request, and tensor-to-Android-Bitmap conversion are source-integrated
+- Native API and build compatibility are **not verified**; build/CI is intentionally deferred
+- Input image, inpainting mask, batch generation, and upscale require additional verified upstream API wiring
 
-## Candidate engine
-CMake root enables both C and CXX because GGML performs C compiler feature checks during configure. Pinned upstream `stable-diffusion.cpp` revision `532d2c15c430a785a712b2d94281f04e733008a4` is fetched via CMake FetchContent with recursive submodules. Android app native build is configured for ARM64 CPU-only baseline (OpenMP/OpenCL/Vulkan disabled). Build success only verifies native compilation/linking; model inference API is not yet wired into JNI. Evaluate Vulkan/OpenCL acceleration experimentally after CPU baseline.
+## Device constraints
+- ARM64 CPU baseline is the target for the initial implementation
+- GPU/Vulkan acceleration remains experimental and is not claimed
+- Model compatibility and peak memory depend on checkpoint, quantization, resolution and device
+- App shows device RAM/architecture and applies a conservative request guard, but this is heuristic only
 
-## Integration requirements
-- Isolate native engine symbols/shared library to avoid collisions.
-- JNI API: model loading, generation, progress, cancellation and errors.
-- User-selected model files; current app has a SAF importer storing files in app-private `files/models`.
-- Show model license and storage details before runtime loading.
-- Detect available memory and limit default resolution on constrained phones.
-- Verify model format, quantization and architecture compatibility before enabling Generate.
-
-Generation remains unavailable until model loading, inference, image output and device testing are complete.
+## Release gates
+1. Compile the pinned engine and JNI bridge.
+2. Confirm JNI API signatures against the pinned upstream headers.
+3. Test loading supported model formats and quantization.
+4. Generate multiple sizes and verify bitmap orientation/color correctness.
+5. Validate cancel, failure, progress and memory behavior.
+6. Run real-device performance and thermal tests.
+7. Complete license, privacy, export/share and Play release review.

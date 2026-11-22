@@ -30,3 +30,4 @@ Build/CI and device validation are deferred. Native API wiring, image-to-image, 
 - [Engine notes](docs/ENGINE_NOTES.md)
 - [Privacy policy draft](PRIVACY.md)
 - [Third-party notices checklist](THIRD_PARTY_NOTICES.md)
+- [Release qualification checklist](RELEASE_CHECKLIST.md)

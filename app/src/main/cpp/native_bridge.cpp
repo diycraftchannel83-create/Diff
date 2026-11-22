@@ -68,7 +68,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_ge
  jclass bc=env->FindClass("android/graphics/Bitmap");jclass cc=env->FindClass("android/graphics/Bitmap$Config");jfieldID cf=env->GetStaticFieldID(cc,"ARGB_8888","Landroid/graphics/Bitmap$Config;");jobject config=env->GetStaticObjectField(cc,cf);jmethodID create=env->GetStaticMethodID(bc,"createBitmap","(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");jobject bitmap=env->CallStaticObjectMethod(bc,create,(jint)outW,(jint)outH,config);
  if(!bitmap||env->ExceptionCheck()){sd_result_free(result);return nullptr;}
  std::vector<jint> pixels((size_t)outW*(size_t)outH);for(size_t i=0;i<pixels.size();i++){uint8_t r=bytes[i*3],g=bytes[i*3+1],b=bytes[i*3+2];pixels[i]=(jint)(0xFF000000u|((uint32_t)r<<16)|((uint32_t)g<<8)|b);}
- jmethodID set=env->GetMethodID(bc,"setPixels","([IIIIIII)V");jintArray arr=env->NewIntArray((jsize)pixels.size());if(arr){env->SetIntArrayRegion(arr,0,(jsize)pixels.size(),pixels.data());env->CallVoidMethod(bitmap,set,arr,0,(jint)outW,0,0,(jint)outW,(jint)outH);env->DeleteLocalRef(arr);}
+ jmethodID set=env->GetMethodID(bc,"setPixels","([IIIIII)V");jintArray arr=env->NewIntArray((jsize)pixels.size());if(arr){env->SetIntArrayRegion(arr,0,(jsize)pixels.size(),pixels.data());env->CallVoidMethod(bitmap,set,arr,0,(jint)outW,0,0,(jint)outW,(jint)outH);env->DeleteLocalRef(arr);}
  sd_result_free(result);if(env->ExceptionCheck())return nullptr;return bitmap;
 #else
  throwJava(env,"Stable Diffusion backend is not compiled.");return nullptr;

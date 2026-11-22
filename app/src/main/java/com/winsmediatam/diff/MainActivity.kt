@@ -268,12 +268,16 @@ private fun CreateScreen(
                 }
             }
             Button(onClick = {
-                if (prompt.isBlank()) { onGenerationMessage("Please enter a prompt first."); return@Button }
                 if (selectedModel == null) { onGenerationMessage("Select a local model first."); return@Button }
                 val requestedWidth = width.toIntOrNull()
                 val requestedHeight = height.toIntOrNull()
-                if (requestedWidth == null || requestedHeight == null || requestedWidth !in 256..1024 || requestedHeight !in 256..1024 || requestedWidth % 64 != 0 || requestedHeight % 64 != 0) {
-                    onGenerationMessage("Resolution must be 256–1024 and divisible by 64.")
+                if (requestedWidth == null || requestedHeight == null) {
+                    onGenerationMessage("Width and height must be valid numbers.")
+                    return@Button
+                }
+                val requestError = GenerationRequestRules.validate(prompt, requestedWidth, requestedHeight, steps.toInt(), cfg, batchCount, seed.toLongOrNull() ?: -1L)
+                if (requestError != null) {
+                    onGenerationMessage(requestError)
                     return@Button
                 }
                 val activityManager = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager

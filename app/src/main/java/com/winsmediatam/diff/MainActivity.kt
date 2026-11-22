@@ -171,7 +171,10 @@ private fun CreateScreen(
                         if (userPresets.isNotEmpty()) OutlinedButton(onClick = { showManagePresets = true }) { Text("Manage presets") }
                     }
                     Text("Negative prompt", fontWeight = FontWeight.Bold)
-                    OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })\n                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { imagePicker.launch("image/*") }) { Text(if (initImagePath == null) "Add image-to-image source" else "Change source image") }; if (initImagePath != null) OutlinedButton(onClick = { initImagePath = null; initImagePreview = null }) { Text("Remove source") } }\n                    initImagePreview?.let { Image(it.asImageBitmap(), contentDescription = "Image-to-image source", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp)) }\n                    if (initImagePath != null) { Text("Image-to-image strength: ${(imageStrength * 100).toInt()}%"); Slider(value = imageStrength, onValueChange = { imageStrength = it }, valueRange = 0.05f..1f) }
+                    OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { imagePicker.launch("image/*") }) { Text(if (initImagePath == null) "Add image-to-image source" else "Change source image") }; if (initImagePath != null) OutlinedButton(onClick = { initImagePath = null; initImagePreview = null }) { Text("Remove source") } }
+                    initImagePreview?.let { Image(it.asImageBitmap(), contentDescription = "Image-to-image source", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp)) }
+                    if (initImagePath != null) { Text("Image-to-image strength: ${(imageStrength * 100).toInt()}%"); Slider(value = imageStrength, onValueChange = { imageStrength = it }, valueRange = 0.05f..1f) }
                 }
             }
         }

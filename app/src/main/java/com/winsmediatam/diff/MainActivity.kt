@@ -88,7 +88,9 @@ fun DiffApp() {
     var cfg by remember { mutableFloatStateOf(7f) }
     var width by remember { mutableStateOf("512") }
     var height by remember { mutableStateOf("512") }
-    var seed by remember { mutableStateOf("-1") }\n    var sampler by remember { mutableStateOf("euler") }\n    var scheduler by remember { mutableStateOf("discrete") }
+    var seed by remember { mutableStateOf("-1") }
+    var sampler by remember { mutableStateOf("euler") }
+    var scheduler by remember { mutableStateOf("discrete") }
     var showAdvanced by remember { mutableStateOf(false) }
     var generatedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var generating by remember { mutableStateOf(false) }
@@ -198,7 +200,10 @@ private fun CreateScreen(
                     TextButton(onClick = { onAdvanced(!advanced) }) { Text(if (advanced) "Hide advanced settings" else "Advanced settings") }
                     if (advanced) {
                         OutlinedTextField(value = seed, onValueChange = onSeed, modifier = Modifier.fillMaxWidth(), label = { Text("Seed (-1 = random)") })
-                        Text("Sampler", color = TextMuted, fontSize = 12.sp)\n                        SettingsDropdown("Sampler", sampler, listOf("euler", "euler_a", "heun", "dpm2", "dpm++2m", "lcm", "ddim_trailing", "tcd", "lms"), onSampler)\n                        Text("Scheduler", color = TextMuted, fontSize = 12.sp)\n                        SettingsDropdown("Scheduler", scheduler, listOf("discrete", "karras", "exponential", "ays", "gits", "sgm_uniform", "simple", "smoothstep", "kl_optimal", "lcm", "beta"), onScheduler)
+                        Text("Sampler", color = TextMuted, fontSize = 12.sp)
+                        SettingsDropdown("Sampler", sampler, listOf("euler", "euler_a", "heun", "dpm2", "dpm++2m", "lcm", "ddim_trailing", "tcd", "lms"), onSampler)
+                        Text("Scheduler", color = TextMuted, fontSize = 12.sp)
+                        SettingsDropdown("Scheduler", scheduler, listOf("discrete", "karras", "exponential", "ays", "gits", "sgm_uniform", "simple", "smoothstep", "kl_optimal", "lcm", "beta"), onScheduler)
                     }
                 }
             }
@@ -329,6 +334,22 @@ private fun ModelManagerScreen(modifier: Modifier, models: List<LocalModel>, onI
                     }
                     IconButton(onClick = { onDelete(model) }) { Icon(Icons.Default.Delete, "Delete", tint = Color(0xFFFF6B6B)) }
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun SettingsDropdown(label: String, selected: String, options: List<String>, onSelect: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(Modifier.fillMaxWidth()) {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+            Text("$label: $selected")
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(text = { Text(option) }, onClick = { onSelect(option); expanded = false })
             }
         }
     }

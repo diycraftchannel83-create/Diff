@@ -28,11 +28,13 @@ endif()
 
 add_library(diff_native SHARED native_bridge.cpp)
 find_library(log-lib log)
+find_library(android-lib android)
+find_library(jnigraphics-lib jnigraphics)
 
 if(DIFF_ENABLE_SDCPP)
     target_link_libraries(diff_native PRIVATE stable-diffusion)
     target_compile_definitions(diff_native PRIVATE DIFF_HAS_SDCPP=1)
 endif()
 
-target_link_libraries(diff_native PRIVATE ${log-lib})
+target_link_libraries(diff_native PRIVATE ${log-lib} ${android-lib} ${jnigraphics-lib})
 target_compile_features(diff_native PRIVATE cxx_std_17)

@@ -132,7 +132,7 @@ private fun CreateScreen(
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     var presetMenuExpanded by remember { mutableStateOf(false) }
-    val promptPresets = PromptPresets.all
+    val promptPresets = PromptPresets.all\n    val context = LocalContext.current\n    val userPresetRepository = remember(context) { PromptPresetRepository(context) }\n    var userPresets by remember { mutableStateOf(userPresetRepository.list()) }\n    var showSavePreset by remember { mutableStateOf(false) }\n    var presetName by remember { mutableStateOf("") }
     var presetMenuExpanded by remember { mutableStateOf(false) }
     val promptPresets = PromptPresets.all
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
@@ -157,10 +157,10 @@ private fun CreateScreen(
                     Box {
                         TextButton(onClick = { presetMenuExpanded = true }) { Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(6.dp)); Text("Prompt presets") }
                         DropdownMenu(expanded = presetMenuExpanded, onDismissRequest = { presetMenuExpanded = false }) {
-                            promptPresets.forEach { (name, preset) -> DropdownMenuItem(text = { Text(name) }, onClick = { onPrompt(if (prompt.isBlank()) preset else "$prompt, $preset"); presetMenuExpanded = false }) }
+                            promptPresets.forEach { (name, preset) -> DropdownMenuItem(text = { Text(name) }, onClick = { onPrompt(if (prompt.isBlank()) preset else "$prompt, $preset"); presetMenuExpanded = false }) }\n                            userPresets.forEach { item -> DropdownMenuItem(text = { Text("★ " + item.name) }, onClick = { onPrompt(item.prompt); presetMenuExpanded = false }) }
                         }
                     }
-                    OutlinedTextField(value = prompt, onValueChange = onPrompt, modifier = Modifier.fillMaxWidth(), minLines = 4, placeholder = { Text("Describe the image you want to create…") })
+                    OutlinedTextField(value = prompt, onValueChange = onPrompt, modifier = Modifier.fillMaxWidth(), minLines = 4, placeholder = { Text("Describe the image you want to create…") })\n                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                        OutlinedButton(onClick = { presetName = ""; showSavePreset = true }, enabled = prompt.isNotBlank()) { Text("Save custom preset") }\n                        if (userPresets.isNotEmpty()) OutlinedButton(onClick = { userPresets.firstOrNull()?.let { userPresetRepository.delete(it.name); userPresets = userPresetRepository.list() } }) { Text("Delete first preset") }\n                    }
                     Text("Negative prompt", fontWeight = FontWeight.Bold)
                     OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })
                 }

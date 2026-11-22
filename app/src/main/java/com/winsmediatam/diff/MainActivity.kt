@@ -158,6 +158,17 @@ private fun CreateScreen(
         }
     }
     val deviceCapabilities = remember(context) { DeviceCapabilities.current(context) }
+    if (showManagePresets) {
+        AlertDialog(onDismissRequest = { showManagePresets = false }, title = { Text("Manage custom presets") },
+            text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { userPresets.forEach { preset -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) { Text(preset.name, modifier = Modifier.weight(1f)); TextButton(onClick = { userPresetRepository.delete(preset.name); userPresets = userPresetRepository.list() }) { Text("Delete") } } } } },
+            confirmButton = { TextButton(onClick = { showManagePresets = false }) { Text("Close") } })
+    }
+    if (showSavePreset) {
+        AlertDialog(onDismissRequest = { showSavePreset = false }, title = { Text("Save prompt preset") },
+            text = { OutlinedTextField(value = presetName, onValueChange = { presetName = it }, label = { Text("Preset name") }, singleLine = true) },
+            confirmButton = { TextButton(onClick = { runCatching { userPresetRepository.save(presetName, prompt) }.onSuccess { userPresets = userPresetRepository.list(); showSavePreset = false }.onFailure { onGenerationMessage(it.message ?: "Could not save preset") } }) { Text("Save") } },
+            dismissButton = { TextButton(onClick = { showSavePreset = false }) { Text("Cancel") } })
+    }
     LazyColumn(modifier.fillMaxSize().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {

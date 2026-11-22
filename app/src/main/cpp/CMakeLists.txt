@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(diff_native_bridge LANGUAGES CXX)
+add_library(diff_native SHARED native_bridge.cpp)
+find_library(log-lib log)
+target_link_libraries(diff_native PRIVATE ${log-lib})
+target_compile_features(diff_native PRIVATE cxx_std_17)

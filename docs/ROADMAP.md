@@ -10,12 +10,15 @@
 - [ ] Verify first CI build
 
 ## Phase 2 — Local inference
-- [ ] Select and evaluate Android-compatible inference engine
-- [ ] Native C++/JNI integration
-- [ ] Engine capability detection and device benchmark
+- [x] Android arm64 native CMake integration
+- [x] JNI bridge skeleton and architecture reporting
+- [x] Native runtime status displayed in app
+- [ ] Pin and evaluate stable-diffusion.cpp revision
+- [ ] Build and integrate diffusion engine
+- [ ] Device benchmark and memory capability checks
 - [ ] Model import/download manager
-- [ ] Progress, cancellation, error handling
-- [ ] Implement actual txt2img generation
+- [ ] Generation progress, cancellation and errors
+- [ ] Real txt2img pipeline
 
 ## Phase 3 — Image workflows
 - [ ] Image-to-image

@@ -18,7 +18,9 @@ data class GenerationHistoryEntry(
     val cfg: Float,
     val seed: Long,
     val createdAt: Long,
-    val favorite: Boolean = false
+    val favorite: Boolean = false,
+    val initImagePath: String? = null,
+    val strength: Float = 0.65f
 )
 
 class GenerationHistoryRepository(context: Context) {
@@ -52,7 +54,7 @@ class GenerationHistoryRepository(context: Context) {
                     item.getString("id"), item.getString("file"), item.optString("prompt"),
                     item.optString("negative"), item.optInt("width"), item.optInt("height"),
                     item.optInt("steps"), item.optDouble("cfg").toFloat(), item.optLong("seed"),
-                    item.optLong("created"), item.optBoolean("favorite", false), item.optString("initImagePath").takeIf { it.isNotBlank() }, item.optDouble("strength", 0.65).toFloat()
+                    item.optLong("created"), item.optBoolean("favorite", false), item.optString("initImagePath").takeIf { it.isNotBlank() }, item.optDouble("strength", 0.65).toFloat(), item.optString("initImagePath").takeIf { it.isNotBlank() }, item.optDouble("strength", 0.65).toFloat()
                 )
             }.getOrNull() ?: continue
             if (File(entry.filePath).exists()) result.add(entry)

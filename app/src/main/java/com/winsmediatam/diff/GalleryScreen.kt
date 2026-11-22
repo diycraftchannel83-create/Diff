@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Delete\nimport androidx.compose.material.icons.filled.Favorite\nimport androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onReusePrompt: (GenerationHistoryEntry) -> Unit) {
     var entries by remember { mutableStateOf(history.list()) }
-    var actionMessage by remember { mutableStateOf<String?>(null) }
+    var actionMessage by remember { mutableStateOf<String?>(null) }\n    var searchText by remember { mutableStateOf("") }\n    var favoritesOnly by remember { mutableStateOf(false) }\n    val filteredEntries = entries.filter { (!favoritesOnly || it.favorite) && (searchText.isBlank() || it.prompt.contains(searchText, true) || it.negativePrompt.contains(searchText, true)) }
     val context = androidx.compose.ui.platform.LocalContext.current
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(horizontal = 18.dp),
@@ -42,13 +42,13 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
                     Text("${entry.width}×${entry.height} • ${entry.steps} steps • CFG ${entry.cfg} • Seed ${entry.seed}", style = MaterialTheme.typography.bodySmall)
                     Text(entry.negativePrompt.takeIf { it.isNotBlank() }?.let { "Negative: $it" } ?: "No negative prompt", style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        OutlinedButton(onClick = { onReusePrompt(entry) }) { Text(\"Reuse prompt\") }
-                        OutlinedButton(onClick = { runCatching { history.exportToPictures(entry) }.onSuccess { actionMessage = \"Exported to Pictures/Diff AI Studio\" }.onFailure { actionMessage = it.message ?: \"Export failed\" } }) { Text(\"Export\") }
+                        OutlinedButton(onClick = { onReusePrompt(entry) }) { Text("Reuse prompt") }
+                        OutlinedButton(onClick = { runCatching { history.exportToPictures(entry) }.onSuccess { actionMessage = "Exported to Pictures/Diff AI Studio" }.onFailure { actionMessage = it.message ?: "Export failed" } }) { Text("Export") }
                         OutlinedButton(onClick = { runCatching {
-                            val fileUri = FileProvider.getUriForFile(context, context.packageName + \".fileprovider\", File(entry.filePath))
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply { type = \"image/png\"; putExtra(Intent.EXTRA_STREAM, fileUri); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-                            context.startActivity(Intent.createChooser(shareIntent, \"Share generated image\"))
-                        }.onFailure { actionMessage = it.message ?: \"Share failed\" } }) { Text(\"Share\") }
+                            val fileUri = FileProvider.getUriForFile(context, context.packageName + ".fileprovider", File(entry.filePath))
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply { type = "image/png"; putExtra(Intent.EXTRA_STREAM, fileUri); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+                            context.startActivity(Intent.createChooser(shareIntent, "Share generated image"))
+                        }.onFailure { actionMessage = it.message ?: "Share failed" } }) { Text("Share") }
                     }
                     OutlinedButton(onClick = { history.delete(entry); entries = history.list() }) {
                         Icon(Icons.Default.Delete, contentDescription = null)

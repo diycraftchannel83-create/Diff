@@ -66,7 +66,9 @@ extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_ge
  const char* p=env->GetStringUTFChars(prompt,nullptr);const char* n=negative?env->GetStringUTFChars(negative,nullptr):nullptr;const char* sm=sampler?env->GetStringUTFChars(sampler,nullptr):nullptr;const char* sc=scheduler?env->GetStringUTFChars(scheduler,nullptr):nullptr;const char* ip=initImagePath?env->GetStringUTFChars(initImagePath,nullptr):nullptr;if(!p)return nullptr;
  std::lock_guard<std::mutex> lock(g_ctx_mutex);if(!g_ctx){env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);if(sm)env->ReleaseStringUTFChars(sampler,sm);if(sc)env->ReleaseStringUTFChars(scheduler,sc);if(ip)env->ReleaseStringUTFChars(initImagePath,ip);throwJava(env,"Load a model before generating.");return nullptr;}
  sd_img_gen_opt_t* opts=sd_img_gen_opt_create();sd_result_t* result=nullptr;sd_status_t status=opts?sd_opt_set_string(opts,"prompt",p):SD_STATUS_OUT_OF_MEMORY;
- if(status==SD_STATUS_OK&&n&&n[0])status=sd_opt_set_string(opts,"negative_prompt",n);\n if(status==SD_STATUS_OK&&ip&&ip[0])status=sd_opt_set_string(opts,"init_image",ip);\n if(status==SD_STATUS_OK&&ip&&ip[0])status=sd_opt_set_float(opts,"strength",strength);
+ if(status==SD_STATUS_OK&&n&&n[0])status=sd_opt_set_string(opts,"negative_prompt",n);
+ if(status==SD_STATUS_OK&&ip&&ip[0])status=sd_opt_set_string(opts,"init_image",ip);
+ if(status==SD_STATUS_OK&&ip&&ip[0])status=sd_opt_set_float(opts,"strength",strength);
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"width",width);
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"height",height);
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"seed",seed);

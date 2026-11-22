@@ -40,8 +40,10 @@ class GenerationHistoryRepository(context: Context) {
             check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)) { "Could not save generated image" }
         }
         val entry = GenerationHistoryEntry(id, file.absolutePath, prompt, negative, width, height, steps, cfg, seed, System.currentTimeMillis(), false, initImagePath, strength)
-        val entries = list().toMutableList().also { it.add(0, entry) }.take(100)
-        write(entries)
+        val entries = list().toMutableList().also { it.add(0, entry) }
+        val retained = entries.take(100)
+        entries.drop(100).forEach { File(it.filePath).delete() }
+        write(retained)
         return entry
     }
 

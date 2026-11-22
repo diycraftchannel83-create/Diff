@@ -275,7 +275,12 @@ private fun CreateScreen(
                     onGenerationMessage("Width and height must be valid numbers.")
                     return@Button
                 }
-                val requestError = GenerationRequestRules.validate(prompt, requestedWidth, requestedHeight, steps.toInt(), cfg, batchCount, seed.toLongOrNull() ?: -1L)
+                val parsedSeedInput = seed.toLongOrNull()
+                if (parsedSeedInput == null) {
+                    onGenerationMessage("Seed must be -1 or a valid non-negative integer.")
+                    return@Button
+                }
+                val requestError = GenerationRequestRules.validate(prompt, requestedWidth, requestedHeight, steps.toInt(), cfg, batchCount, parsedSeedInput)
                 if (requestError != null) {
                     onGenerationMessage(requestError)
                     return@Button

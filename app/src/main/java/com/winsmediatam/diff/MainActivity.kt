@@ -99,6 +99,7 @@ fun DiffApp() {
     var generationProgress by remember { mutableFloatStateOf(0f) }
     var generationMessage by remember { mutableStateOf("Select a compatible GGUF model to begin.") }
     var loadedModelPath by remember { mutableStateOf<String?>(null) }
+    var historyRestoreEntry by remember { mutableStateOf<GenerationHistoryEntry?>(null) }
 
     MaterialTheme(colorScheme = darkColorScheme(primary = Accent, background = Bg, surface = SurfaceDark)) {
         Scaffold(containerColor = Bg, bottomBar = {
@@ -112,8 +113,8 @@ fun DiffApp() {
             }
         }) { padding ->
             when (selectedTab) {
-                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it }, generationProgress, { generationProgress = it }, historyRepository, sampler, { sampler = it }, scheduler, { scheduler = it })
-                1 -> GalleryScreen(Modifier.padding(padding), historyRepository) { entry -> prompt = entry.prompt; negativePrompt = entry.negativePrompt; selectedTab = 0 }
+                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it }, generationProgress, { generationProgress = it }, historyRepository, sampler, { sampler = it }, scheduler, { scheduler = it }, historyRestoreEntry)
+                1 -> GalleryScreen(Modifier.padding(padding), historyRepository) { entry -> prompt = entry.prompt; negativePrompt = entry.negativePrompt; historyRestoreEntry = entry; selectedTab = 0 }
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
                     OfflineModelDownloadWorker.enqueue(context)
                 }, { OfflineModelDownloadWorker.cancel(context) })
@@ -130,7 +131,7 @@ private fun CreateScreen(
     steps: Float, onSteps: (Float) -> Unit, cfg: Float, onCfg: (Float) -> Unit,
     width: String, onWidth: (String) -> Unit, height: String, onHeight: (String) -> Unit,
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
-    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit, historyRepository: GenerationHistoryRepository, sampler: String, onSampler: (String) -> Unit, scheduler: String, onScheduler: (String) -> Unit
+    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit, historyRepository: GenerationHistoryRepository, sampler: String, onSampler: (String) -> Unit, scheduler: String, onScheduler: (String) -> Unit, restoreEntry: GenerationHistoryEntry?
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     var presetMenuExpanded by remember { mutableStateOf(false) }
@@ -148,6 +149,29 @@ private fun CreateScreen(
     var initImagePreview by remember { mutableStateOf<Bitmap?>(null) }
     var imageStrength by remember { mutableFloatStateOf(0.65f) }
     var maskImagePath by remember { mutableStateOf<String?>(null) }
+    var lastRestoredEntryId by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(restoreEntry?.id) {
+        val entry = restoreEntry ?: return@LaunchedEffect
+        if (entry.id == lastRestoredEntryId) return@LaunchedEffect
+        onPrompt(entry.prompt)
+        onNegative(entry.negativePrompt)
+        onSteps(entry.steps.toFloat().coerceIn(1f, 60f))
+        onCfg(entry.cfg.coerceIn(1f, 20f))
+        onWidth(entry.width.toString())
+        onHeight(entry.height.toString())
+        onSeed(entry.seed.toString())
+        onSampler(entry.sampler)
+        onScheduler(entry.scheduler)
+        imageStrength = entry.strength.coerceIn(0.05f, 1f)
+        val sourceFile = entry.initImagePath?.let(::File)?.takeIf { it.exists() && it.isFile }
+        val sourceBitmap = sourceFile?.let { BitmapFactory.decodeFile(it.absolutePath) }
+        initImagePath = if (sourceBitmap != null) sourceFile?.absolutePath else null
+        initImagePreview = sourceBitmap
+        val maskFile = entry.maskImagePath?.let(::File)?.takeIf { it.exists() && it.isFile && sourceBitmap != null }
+        maskImagePath = maskFile?.absolutePath
+        lastRestoredEntryId = entry.id
+        onGenerationMessage(if (sourceBitmap == null && entry.initImagePath != null) "History restored. Source image is missing; using text-to-image." else "Generation settings restored from history.")
+    }
     var showMaskEditor by remember { mutableStateOf(false) }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) coroutineScope.launch {
@@ -322,7 +346,7 @@ private fun CreateScreen(
                             val bitmap = generationJob.await()
                             if (bitmap == null) break
                             onBitmap(bitmap)
-                            withContext(Dispatchers.IO) { historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, runSeed, initImagePath, imageStrength, maskImagePath) }
+                            withContext(Dispatchers.IO) { historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, runSeed, initImagePath, imageStrength, maskImagePath, sampler, scheduler) }
                             completedCount++
                             onProgress(completedCount.toFloat() / batchCount)
                             onGenerationMessage("Batch progress: $completedCount / $batchCount")

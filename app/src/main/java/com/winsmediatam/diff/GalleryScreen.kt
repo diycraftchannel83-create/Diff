@@ -10,7 +10,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete\nimport androidx.compose.material.icons.filled.Favorite\nimport androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -20,7 +22,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onReusePrompt: (GenerationHistoryEntry) -> Unit) {
     var entries by remember { mutableStateOf(history.list()) }
-    var actionMessage by remember { mutableStateOf<String?>(null) }\n    var searchText by remember { mutableStateOf("") }\n    var favoritesOnly by remember { mutableStateOf(false) }\n    var sortOrder by remember { mutableStateOf("Newest") }\n    var expandedMetadata by remember { mutableStateOf<Set<String>>(emptySet()) }\n    var sortMenu by remember { mutableStateOf(false) }\n    val filteredEntries = entries.filter { (!favoritesOnly || it.favorite) && (searchText.isBlank() || it.prompt.contains(searchText, true) || it.negativePrompt.contains(searchText, true)) }.let { list -> when (sortOrder) { "Oldest" -> list.sortedBy { it.createdAt }; "Favorites first" -> list.sortedByDescending { it.favorite }; else -> list.sortedByDescending { it.createdAt } } }
+    var actionMessage by remember { mutableStateOf<String?>(null) }
+    var searchText by remember { mutableStateOf("") }
+    var favoritesOnly by remember { mutableStateOf(false) }
+    var sortOrder by remember { mutableStateOf("Newest") }
+    var expandedMetadata by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var sortMenu by remember { mutableStateOf(false) }
+    val filteredEntries = entries.filter { (!favoritesOnly || it.favorite) && (searchText.isBlank() || it.prompt.contains(searchText, true) || it.negativePrompt.contains(searchText, true)) }.let { list -> when (sortOrder) { "Oldest" -> list.sortedBy { it.createdAt }; "Favorites first" -> list.sortedByDescending { it.favorite }; else -> list.sortedByDescending { it.createdAt } } }
     val context = androidx.compose.ui.platform.LocalContext.current
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(horizontal = 18.dp),
@@ -40,7 +48,14 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
                     if (bitmap != null) Image(bitmap.asImageBitmap(), contentDescription = entry.prompt, modifier = Modifier.fillMaxWidth())
                     Text(entry.prompt, style = MaterialTheme.typography.titleMedium)
                     Text("${entry.width}×${entry.height} • ${entry.steps} steps • CFG ${entry.cfg} • Seed ${entry.seed}", style = MaterialTheme.typography.bodySmall)
-                    Text(entry.negativePrompt.takeIf { it.isNotBlank() }?.let { "Negative: $it" } ?: "No negative prompt", style = MaterialTheme.typography.bodySmall)\n                    TextButton(onClick = { expandedMetadata = if (entry.id in expandedMetadata) expandedMetadata - entry.id else expandedMetadata + entry.id }) { Text(if (entry.id in expandedMetadata) "Hide metadata" else "Details / metadata") }\n                    if (entry.id in expandedMetadata) {\n                        Text("Created: " + java.text.DateFormat.getDateTimeInstance().format(java.util.Date(entry.createdAt)), style = MaterialTheme.typography.bodySmall)\n                        Text("Resolution: ${entry.width} × ${entry.height} • Steps: ${entry.steps} • CFG: ${entry.cfg} • Seed: ${entry.seed}", style = MaterialTheme.typography.bodySmall)\n                        Text("Prompt: ${entry.prompt}", style = MaterialTheme.typography.bodySmall)\n                        Text("Negative prompt: ${entry.negativePrompt.ifBlank { "None" }}", style = MaterialTheme.typography.bodySmall)\n                    }
+                    Text(entry.negativePrompt.takeIf { it.isNotBlank() }?.let { "Negative: $it" } ?: "No negative prompt", style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { expandedMetadata = if (entry.id in expandedMetadata) expandedMetadata - entry.id else expandedMetadata + entry.id }) { Text(if (entry.id in expandedMetadata) "Hide metadata" else "Details / metadata") }
+                    if (entry.id in expandedMetadata) {
+                        Text("Created: " + java.text.DateFormat.getDateTimeInstance().format(java.util.Date(entry.createdAt)), style = MaterialTheme.typography.bodySmall)
+                        Text("Resolution: ${entry.width} × ${entry.height} • Steps: ${entry.steps} • CFG: ${entry.cfg} • Seed: ${entry.seed}", style = MaterialTheme.typography.bodySmall)
+                        Text("Prompt: ${entry.prompt}", style = MaterialTheme.typography.bodySmall)
+                        Text("Negative prompt: ${entry.negativePrompt.ifBlank { "None" }}", style = MaterialTheme.typography.bodySmall)
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         OutlinedButton(onClick = { onReusePrompt(entry) }) { Text("Reuse prompt") }
                         OutlinedButton(onClick = { runCatching { history.exportToPictures(entry) }.onSuccess { actionMessage = "Exported to Pictures/Diff AI Studio" }.onFailure { actionMessage = it.message ?: "Export failed" } }) { Text("Export") }

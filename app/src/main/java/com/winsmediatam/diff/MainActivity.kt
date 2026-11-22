@@ -140,7 +140,7 @@ private fun CreateScreen(
     var userPresets by remember { mutableStateOf(userPresetRepository.list()) }
     var showSavePreset by remember { mutableStateOf(false) }
     var showManagePresets by remember { mutableStateOf(false) }
-    var presetName by remember { mutableStateOf("") }
+    var presetName by remember { mutableStateOf("") }\n    var batchCount by remember { mutableIntStateOf(1) } }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
     val coroutineScope = rememberCoroutineScope()
     var initImagePath by remember { mutableStateOf<String?>(null) }
@@ -243,7 +243,7 @@ private fun CreateScreen(
                     Slider(value = cfg, onValueChange = onCfg, valueRange = 1f..20f)
                     TextButton(onClick = { onAdvanced(!advanced) }) { Text(if (advanced) "Hide advanced settings" else "Advanced settings") }
                     if (advanced) {
-                        OutlinedTextField(value = seed, onValueChange = onSeed, modifier = Modifier.fillMaxWidth(), label = { Text("Seed (-1 = random)") })
+                        OutlinedTextField(value = seed, onValueChange = onSeed, modifier = Modifier.fillMaxWidth(), label = { Text("Seed (-1 = random)") })\n                        Text("Batch count: $batchCount (max 4)")\n                        Slider(value = batchCount.toFloat(), onValueChange = { batchCount = it.toInt().coerceIn(1, 4) }, valueRange = 1f..4f, steps = 2)
                         Text("Sampler", color = TextMuted, fontSize = 12.sp)
                         SettingsDropdown("Sampler", sampler, listOf("auto", "euler", "euler_a", "heun", "dpm2", "dpm++2m", "lcm", "ddim_trailing", "tcd", "lms"), onSampler)
                         Text("Scheduler", color = TextMuted, fontSize = 12.sp)
@@ -287,20 +287,29 @@ private fun CreateScreen(
                             onGenerationMessage("Model loaded. Starting generation…")
                         }
                         val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L
-                        val generationJob = coroutineScope.async(Dispatchers.IO) {
-                            NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed, sampler, scheduler, initImagePath ?: "", imageStrength)
+                        var completedCount = 0
+                        for (batchIndex in 0 until batchCount) {
+                            val runSeed = if (parsedSeed >= 0L) parsedSeed + batchIndex else -1L
+                            val generationJob = coroutineScope.async(Dispatchers.IO) {
+                                NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, runSeed, sampler, scheduler, initImagePath ?: "", imageStrength)
+                            }
+                            while (generationJob.isActive) {
+                                val progress = withContext(Dispatchers.IO) { NativeRuntime.getGenerationProgress() }
+                                if (progress.size >= 2 && progress[1] > 0) {
+                                    val current = (progress[0].toFloat() / progress[1]).coerceIn(0f, 1f)
+                                    onProgress(((completedCount + current) / batchCount).coerceIn(0f, 1f))
+                                }
+                                delay(400)
+                            }
+                            val bitmap = generationJob.await()
+                            if (bitmap == null) break
+                            onBitmap(bitmap)
+                            withContext(Dispatchers.IO) { historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, runSeed, initImagePath, imageStrength) }
+                            completedCount++
+                            onProgress(completedCount.toFloat() / batchCount)
+                            onGenerationMessage("Batch progress: $completedCount / $batchCount")
                         }
-                        var bitmap: Bitmap? = null
-                        while (generationJob.isActive) {
-                            val progress = withContext(Dispatchers.IO) { NativeRuntime.getGenerationProgress() }
-                            if (progress.size >= 2 && progress[1] > 0) onProgress((progress[0].toFloat() / progress[1]).coerceIn(0f, 1f))
-                            delay(400)
-                        }
-                        bitmap = generationJob.await()
-                        onBitmap(bitmap)
-                        if (bitmap != null) withContext(Dispatchers.IO) { historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed, initImagePath, imageStrength) }
-                        onProgress(1f)
-                        onGenerationMessage(if (bitmap != null) "Generation complete." else "No image was returned.")
+                        onGenerationMessage(if (completedCount == batchCount) "Batch complete: $completedCount images." else "Batch stopped after $completedCount image(s).")
                     } catch (e: CancellationException) {
                         onGenerationMessage("Generation cancelled.")
                     } catch (e: Exception) {

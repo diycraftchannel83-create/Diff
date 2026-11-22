@@ -2,6 +2,9 @@ package com.winsmediatam.diff
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.content.ContentValues
+import android.os.Build
+import android.provider.MediaStore
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -67,6 +70,25 @@ class GenerationHistoryRepository(context: Context) {
         val updated = entry.copy(favorite = !entry.favorite)
         write(list().map { if (it.id == entry.id) updated else it })
         return updated
+    }
+
+    fun exportToPictures(entry: GenerationHistoryEntry): String {
+        val source = File(entry.filePath)
+        require(source.exists()) { "Saved image file is missing" }
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "Diff_${entry.id}.png")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Diff AI Studio")
+        }
+        val resolver = appContext.contentResolver
+        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: error("Unable to create export file")
+        try {
+            resolver.openOutputStream(uri)?.use { output -> source.inputStream().use { it.copyTo(output) } } ?: error("Unable to open export stream")
+        } catch (e: Exception) {
+            resolver.delete(uri, null, null)
+            throw e
+        }
+        return uri.toString()
     }
 
     @Synchronized

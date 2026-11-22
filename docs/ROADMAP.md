@@ -42,10 +42,10 @@
 - [ ] AI upscale model/pipeline
 
 ## Phase 5 — Release quality
-- [x] Model extension tests source
+- [x] Pure unit test source for model extension rules and built-in prompt presets
 - [x] Heuristic pre-generation RAM/resolution guard
 - [x] Runtime/privacy Settings screen
-- [ ] Unit tests for history and preset persistence
+- [ ] Unit tests for history and custom preset persistence
 - [ ] UI tests, accessibility and localization review
 - [ ] Native memory/performance optimization
 - [ ] Real-device compatibility matrix

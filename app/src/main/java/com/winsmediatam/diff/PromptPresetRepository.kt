@@ -21,10 +21,12 @@ class PromptPresetRepository(context: Context) {
     }
 
     fun save(name: String, prompt: String) {
-        require(name.isNotBlank()) { "Preset name is required" }
-        require(prompt.isNotBlank()) { "Prompt cannot be empty" }
-        val updated = list().filterNot { it.name.equals(name.trim(), true) }.toMutableList()
-        updated.add(UserPromptPreset(name.trim(), prompt.trim()))
+        val validationError = PromptPresetRules.validate(name, prompt)
+        require(validationError == null) { validationError ?: "Invalid preset" }
+        val normalizedName = PromptPresetRules.normalizeName(name) ?: error("Invalid preset name")
+        val normalizedPrompt = PromptPresetRules.normalizePrompt(prompt) ?: error("Invalid preset prompt")
+        val updated = list().filterNot { it.name.equals(normalizedName, true) }.toMutableList()
+        updated.add(UserPromptPreset(normalizedName, normalizedPrompt))
         val array = JSONArray()
         updated.forEach { array.put(JSONObject().put("name", it.name).put("prompt", it.prompt)) }
         prefs.edit().putString(key, array.toString()).apply()

@@ -109,7 +109,7 @@ fun DiffApp() {
         }) { padding ->
             when (selectedTab) {
                 0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it }, generationProgress, { generationProgress = it }, historyRepository)
-                1 -> GalleryScreen(Modifier.padding(padding), historyRepository)
+                1 -> GalleryScreen(Modifier.padding(padding), historyRepository) { entry -> prompt = entry.prompt; negativePrompt = entry.negativePrompt; selectedTab = 0 }
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
                     OfflineModelDownloadWorker.enqueue(context)
                 }, { OfflineModelDownloadWorker.cancel(context) })

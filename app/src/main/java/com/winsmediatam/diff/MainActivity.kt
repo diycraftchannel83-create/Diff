@@ -150,7 +150,7 @@ private fun CreateScreen(
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) coroutineScope.launch {
             runCatching { withContext(Dispatchers.IO) {
-                val file = File(context.cacheDir, "img2img_source_${System.currentTimeMillis()}.png")
+                val file = File(File(context.filesDir, "img2img_inputs").apply { mkdirs() }, "img2img_source_${System.currentTimeMillis()}.png")
                 context.contentResolver.openInputStream(uri)?.use { input -> file.outputStream().use { output -> input.copyTo(output) } } ?: error("Could not open selected image")
                 val decoded = BitmapFactory.decodeFile(file.absolutePath) ?: error("Selected image could not be decoded")
                 file.absolutePath to decoded
@@ -281,7 +281,7 @@ private fun CreateScreen(
                         }
                         bitmap = generationJob.await()
                         onBitmap(bitmap)
-                        if (bitmap != null) withContext(Dispatchers.IO) { historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed) }
+                        if (bitmap != null) withContext(Dispatchers.IO) { historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed, initImagePath, imageStrength) }
                         onProgress(1f)
                         onGenerationMessage(if (bitmap != null) "Generation complete." else "No image was returned.")
                     } catch (e: CancellationException) {

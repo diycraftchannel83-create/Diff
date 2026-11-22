@@ -304,7 +304,7 @@ private fun CreateScreen(
                             val bitmap = generationJob.await()
                             if (bitmap == null) break
                             onBitmap(bitmap)
-                            withContext(Dispatchers.IO) { historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, runSeed, initImagePath, imageStrength) }
+                            withContext(Dispatchers.IO) { historyRepository.save(bitmap, prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, runSeed, initImagePath, imageStrength, maskImagePath) }
                             completedCount++
                             onProgress(completedCount.toFloat() / batchCount)
                             onGenerationMessage("Batch progress: $completedCount / $batchCount")

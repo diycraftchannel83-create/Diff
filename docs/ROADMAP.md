@@ -22,9 +22,10 @@
 - [x] User custom prompt presets: save, select and manage/delete
 - [x] Image-to-image picker, persistent private input copy, preview and strength slider
 - [x] JNI option wiring for init_image and strength (source only)
-- [ ] Validate image-to-image engine API and generation on-device
+- [x] Sequential batch generation up to 4 images with aggregate progress, cancel and per-image history (source)
+- [ ] Validate image-to-image and batch native API behavior on-device
 - [ ] Inpainting mask editor and mask pipeline
-- [ ] Batch generation queue, per-item progress and cancellation
+- [ ] Reuse full image-to-image configuration from history
 - [ ] More verified sampler/scheduler compatibility options
 
 ## Phase 4 — Library
@@ -33,9 +34,8 @@
 - [x] Favorites toggle and persisted favorite state
 - [x] Prompt search and favorites filter
 - [x] Sort newest/oldest/favorites-first
-- [x] Metadata detail view, including image-to-image source/strength
+- [x] Metadata detail view, including image-to-image source/strength and batch seed
 - [x] Delete, reuse prompt, export to Pictures and Android share
-- [ ] Reuse full image-to-image configuration from history
 - [ ] Upscale workflow
 
 ## Phase 5 — Release quality
@@ -51,4 +51,4 @@
 - [ ] Play Store release checklist
 
 ## Validation status
-Source changes are committed incrementally. Build/CI/device validation remains intentionally deferred. New image-to-image JNI options, history/gallery, exports and preset UI are not compile/runtime verified. Production readiness requires completing the validation and remaining workflow items.
+Source changes are committed incrementally. Build/CI/device validation remains intentionally deferred. Image-to-image, batch, gallery/history, export/share and preset UI are not compile/runtime verified. Production readiness requires completing the validation and remaining workflow items.

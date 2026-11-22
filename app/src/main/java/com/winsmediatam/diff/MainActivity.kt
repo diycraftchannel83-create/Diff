@@ -89,8 +89,8 @@ fun DiffApp() {
     var width by remember { mutableStateOf("512") }
     var height by remember { mutableStateOf("512") }
     var seed by remember { mutableStateOf("-1") }
-    var sampler by remember { mutableStateOf("euler") }
-    var scheduler by remember { mutableStateOf("discrete") }
+    var sampler by remember { mutableStateOf("auto") }
+    var scheduler by remember { mutableStateOf("auto") }
     var showAdvanced by remember { mutableStateOf(false) }
     var generatedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var generating by remember { mutableStateOf(false) }
@@ -201,9 +201,9 @@ private fun CreateScreen(
                     if (advanced) {
                         OutlinedTextField(value = seed, onValueChange = onSeed, modifier = Modifier.fillMaxWidth(), label = { Text("Seed (-1 = random)") })
                         Text("Sampler", color = TextMuted, fontSize = 12.sp)
-                        SettingsDropdown("Sampler", sampler, listOf("euler", "euler_a", "heun", "dpm2", "dpm++2m", "lcm", "ddim_trailing", "tcd", "lms"), onSampler)
+                        SettingsDropdown("Sampler", sampler, listOf("auto", "euler", "euler_a", "heun", "dpm2", "dpm++2m", "lcm", "ddim_trailing", "tcd", "lms"), onSampler)
                         Text("Scheduler", color = TextMuted, fontSize = 12.sp)
-                        SettingsDropdown("Scheduler", scheduler, listOf("discrete", "karras", "exponential", "ays", "gits", "sgm_uniform", "simple", "smoothstep", "kl_optimal", "lcm", "beta"), onScheduler)
+                        SettingsDropdown("Scheduler", scheduler, listOf("auto", "discrete", "karras", "exponential", "ays", "gits", "sgm_uniform", "simple", "smoothstep", "kl_optimal", "lcm", "beta"), onScheduler)
                     }
                 }
             }

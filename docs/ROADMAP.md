@@ -15,10 +15,10 @@
 - [x] Native runtime status displayed in app
 - [x] Pin stable-diffusion.cpp revision (upstream commit 532d2c1)
 - [x] Build stable-diffusion.cpp into Android ARM64 JNI shared library (CPU baseline)\n- [ ] Wire stable-diffusion.cpp opaque API to JNI model loading/inference
-- [ ] Device benchmark and memory capability checks
+- [x] Basic device RAM/architecture capability report and resolution recommendation\n- [ ] Device benchmark and memory capability checks
 - [x] Local model file import manager (SAF, app-private storage, list and delete)
 - [x] Model extension validation and temporary-file import safety
-- [x] Model Manager UI connected to import/list/delete actions
+- [x] Model Manager UI connected to import/list/delete actions\n- [x] Create screen model selector connected to imported models and persisted selection
 - [ ] Model download manager (remote catalog and resumable download)
 - [ ] Generation progress, cancellation and errors
 - [ ] Real txt2img pipeline

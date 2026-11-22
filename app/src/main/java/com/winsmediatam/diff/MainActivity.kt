@@ -50,7 +50,15 @@ fun DiffApp() {
     var selectedTab by remember { mutableStateOf(0) }
     var prompt by remember { mutableStateOf("") }
     var negativePrompt by remember { mutableStateOf("") }
-    var model by remember { mutableStateOf("Model not installed") }
+    val selectionPrefs = remember(context) { context.getSharedPreferences("diff_selection", android.content.Context.MODE_PRIVATE) }
+    var selectedModelId by remember { mutableStateOf(selectionPrefs.getString("selected_model_id", null)) }
+    val selectedModel = localModels.firstOrNull { it.id == selectedModelId }
+    LaunchedEffect(localModels, selectedModelId) {
+        if (selectedModelId != null && localModels.none { it.id == selectedModelId }) {
+            selectedModelId = null
+            selectionPrefs.edit().remove("selected_model_id").apply()
+        }
+    }
     var steps by remember { mutableFloatStateOf(25f) }
     var cfg by remember { mutableFloatStateOf(7f) }
     var width by remember { mutableStateOf("512") }
@@ -70,7 +78,7 @@ fun DiffApp() {
             }
         }) { padding ->
             when (selectedTab) {
-                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, model, { model = it }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it })
+                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it })
                 1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError)
                 else -> EmptyScreen(Modifier.padding(padding), "Settings", "Local generation preferences and app configuration.")
@@ -82,11 +90,14 @@ fun DiffApp() {
 @Composable
 private fun CreateScreen(
     modifier: Modifier, prompt: String, onPrompt: (String) -> Unit,
-    negative: String, onNegative: (String) -> Unit, model: String, onModel: (String) -> Unit,
+    negative: String, onNegative: (String) -> Unit, models: List<LocalModel>, selectedModelId: String?, onModelSelected: (String?) -> Unit,
     steps: Float, onSteps: (Float) -> Unit, cfg: Float, onCfg: (Float) -> Unit,
     width: String, onWidth: (String) -> Unit, height: String, onHeight: (String) -> Unit,
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit
 ) {
+    var modelMenuExpanded by remember { mutableStateOf(false) }
+    val selectedModel = models.firstOrNull { it.id == selectedModelId }
+    val deviceCapabilities = remember { DeviceCapabilities.current(LocalContext.current) }
     LazyColumn(modifier.fillMaxSize().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -112,8 +123,24 @@ private fun CreateScreen(
             Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark), shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Model", fontWeight = FontWeight.Bold)
-                    OutlinedButton(onClick = { onModel(if (model == "Model not installed") "Choose model (coming soon)" else "Model not installed" ) }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Storage, null); Spacer(Modifier.width(8.dp)); Text(model)
+                    Box(Modifier.fillMaxWidth()) {
+                        OutlinedButton(onClick = { modelMenuExpanded = true }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Default.Storage, null); Spacer(Modifier.width(8.dp)); Text(selectedModel?.name ?: "Select imported model")
+                        }
+                        DropdownMenu(expanded = modelMenuExpanded, onDismissRequest = { modelMenuExpanded = false }) {
+                            if (models.isEmpty()) DropdownMenuItem(text = { Text("No imported models") }, onClick = { modelMenuExpanded = false })
+                            models.forEach { item -> DropdownMenuItem(text = { Text(item.name) }, onClick = { onModelSelected(item.id); modelMenuExpanded = false }) }
+                            if (selectedModelId != null) DropdownMenuItem(text = { Text("Clear selection") }, onClick = { onModelSelected(null); modelMenuExpanded = false })
+                        }
+                    }
+                    selectedModel?.let { Text("Selected file: ${it.fileName} • ${ModelRepository.formatSize(it.sizeBytes)}", color = TextMuted, fontSize = 12.sp) }
+                    Card(colors = CardDefaults.cardColors(containerColor = Bg), shape = RoundedCornerShape(12.dp)) {
+                        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("DEVICE READINESS", color = Accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("RAM: ${deviceCapabilities.totalRamMb} MB • Available now: ${deviceCapabilities.availableRamMb} MB", fontSize = 12.sp)
+                            Text("Architecture: ${deviceCapabilities.architecture} • ${deviceCapabilities.recommendedPreset}", color = TextMuted, fontSize = 12.sp)
+                            Text("Suggested starting resolution: ${deviceCapabilities.suggestedResolution}", color = TextMuted, fontSize = 12.sp)
+                        }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         DimensionField("Width", width, onWidth, Modifier.weight(1f))
@@ -135,7 +162,7 @@ private fun CreateScreen(
             Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(15.dp)) {
                 Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(8.dp)); Text("GENERATION ENGINE NOT READY")
             }
-            Text("UI scaffold is ready. Local model inference is the next implementation phase.", color = TextMuted, fontSize = 12.sp)
+            Text(if (selectedModel == null) "Import a compatible model and select it above. Inference is not yet connected." else "Model selection is saved. Native loading and inference integration are next.", color = TextMuted, fontSize = 12.sp)
         }
     }
 }

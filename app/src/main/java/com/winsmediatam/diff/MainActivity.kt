@@ -113,7 +113,7 @@ fun DiffApp() {
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
                     OfflineModelDownloadWorker.enqueue(context)
                 }, { OfflineModelDownloadWorker.cancel(context) })
-                else -> EmptyScreen(Modifier.padding(padding), "Settings", "Local generation preferences and app configuration.")
+                else -> SettingsScreen(Modifier.padding(padding))
             }
         }
     }

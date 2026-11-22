@@ -16,7 +16,8 @@
 - [ ] Pin and evaluate stable-diffusion.cpp revision
 - [ ] Build and integrate diffusion engine
 - [ ] Device benchmark and memory capability checks
-- [ ] Model import/download manager
+- [x] Local model file import manager (SAF, app-private storage, list and delete)
+- [ ] Model download manager (remote catalog and resumable download)
 - [ ] Generation progress, cancellation and errors
 - [ ] Real txt2img pipeline
 

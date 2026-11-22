@@ -14,7 +14,8 @@ Evaluate upstream `stable-diffusion.cpp` at a pinned revision. Android build sup
 ## Integration requirements
 - Isolate native engine symbols/shared library to avoid collisions.
 - JNI API: model loading, generation, progress, cancellation and errors.
-- User-selected model files; show model license and storage details.
+- User-selected model files; current app has a SAF importer storing files in app-private `files/models`.
+- Show model license and storage details before runtime loading.
 - Detect available memory and limit default resolution on constrained phones.
 - Verify model format, quantization and architecture compatibility before enabling Generate.
 

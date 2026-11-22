@@ -25,7 +25,7 @@
 - [x] Sequential batch generation up to 4 images with aggregate progress, cancel and per-image history (source)
 - [x] Interactive inpainting mask editor and mask_image JNI option wiring (source)
 - [ ] Validate image-to-image, batch and inpainting native API behavior on-device
-- [ ] Reuse full image-to-image/mask configuration from history
+- [x] Restore generation settings from history: prompt, negative prompt, dimensions, steps, CFG, seed, sampler, scheduler, source image, strength and mask (source)
 - [ ] More verified sampler/scheduler compatibility options
 
 ## Phase 4 — Library
@@ -47,7 +47,8 @@
 - [x] UI rejects malformed seed text instead of silently treating it as random
 - [x] Heuristic pre-generation RAM/resolution guard
 - [x] Runtime/privacy Settings screen
-- [ ] Unit tests for history and custom preset persistence
+- [x] Pure custom prompt preset validation tests (name/prompt normalization and limits)
+- [ ] Android persistence tests for history and custom presets
 - [ ] UI tests, accessibility and localization review
 - [ ] Native memory/performance optimization
 - [ ] Real-device compatibility matrix

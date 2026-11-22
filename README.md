@@ -1,18 +1,23 @@
 # Diff AI Studio
 
-Android-native, offline-first AI image generation studio.
+Android-native, offline-first AI image generation studio (ARM64-first).
 
-## Implemented
-- Kotlin + Jetpack Compose foundation and dark studio UI
-- ARM64 JNI/CMake status bridge\n- Pinned stable-diffusion.cpp CPU backend configured and linked for Android ARM64
-- Prompt, negative prompt, dimensions, steps, CFG and seed controls
-- Native JNI model loading and txt2img source integration: selected local model, generation options, RGB bitmap preview, and surfaced native errors (build/runtime validation pending)
-- Native progress callback exposed in UI, cancellation request through stable-diffusion.cpp, and pre-generation resolution/available-RAM safety guard (source only; validation pending)
-- Local model manager: import from Android file picker, list, size display and delete\n- Create screen model selector with persisted selection\n- Basic device RAM/architecture report and suggested starter resolution
-- Supported file extension validation and safer temporary import/finalize flow
-- Background model download worker with foreground notification, progress and cancel; Model Manager UI is wired to WorkManager status\n- GitHub Actions Debug APK build
+## Source implementation
+- Jetpack Compose dark studio shell, Create/Gallery/Models/Settings navigation
+- Local model import/list/delete and persisted model selection
+- Background model download worker with progress, cancel and resume support
+- stable-diffusion.cpp pinned native ARM64 CPU baseline integration source
+- JNI model load/release, txt2img parameters, progress/cancellation and bitmap output source
+- Prompt/negative prompt, steps, CFG, seed and resolution controls
+- Device RAM/architecture reporting and conservative pre-generation memory guard
+- Prompt presets: photo-realistic, cinematic, anime, fantasy, product, portrait, landscape and architecture
+- Automatically saved private generation history with PNG files and metadata
+- Gallery/history display and deletion
 
-## Important
-The stable-diffusion.cpp C API is now connected in JNI source for model loading and basic txt2img generation. The Create screen calls native inference on an IO coroutine, displays the returned bitmap, tracks native sampling progress, and can request cancellation. A preflight RAM/resolution guard blocks unsafe requests. **These source changes have not been build- or device-validated yet**; supported model format and memory requirements remain model/device dependent.
+## Validation caveat
+The repository is being advanced source-first. **Build/CI and device validation are currently deferred.** JNI/upstream API compatibility, model-format support and actual inference are not yet verified. Do not consider the app production-ready.
 
-Offline model downloads: [docs/MODEL_DOWNLOADS.md](docs/MODEL_DOWNLOADS.md). Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md). Engine notes: [docs/ENGINE_NOTES.md](docs/ENGINE_NOTES.md).
+## Documentation
+- [Roadmap](docs/ROADMAP.md)
+- [Model downloads](docs/MODEL_DOWNLOADS.md)
+- [Engine notes](docs/ENGINE_NOTES.md)

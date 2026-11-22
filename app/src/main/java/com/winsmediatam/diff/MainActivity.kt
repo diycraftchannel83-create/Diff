@@ -125,7 +125,7 @@ private fun CreateScreen(
     steps: Float, onSteps: (Float) -> Unit, cfg: Float, onCfg: (Float) -> Unit,
     width: String, onWidth: (String) -> Unit, height: String, onHeight: (String) -> Unit,
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
-    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit
+    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
@@ -249,6 +249,13 @@ private fun CreateScreen(
             }, enabled = !generating, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(15.dp)) {
                 if (generating) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp) else Icon(Icons.Default.AutoAwesome, null)
                 Spacer(Modifier.width(8.dp)); Text(if (generating) "GENERATING…" else "GENERATE IMAGE")
+            }
+            if (generating) {
+                LinearProgressIndicator(progress = { generationProgress }, modifier = Modifier.fillMaxWidth())
+                Text("Sampling ${(generationProgress * 100).toInt()}%", color = TextMuted, fontSize = 12.sp)
+                OutlinedButton(onClick = { NativeRuntime.cancelGeneration(); onGenerationMessage("Cancellation requested…") }, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Stop, null); Spacer(Modifier.width(8.dp)); Text("CANCEL GENERATION")
+                }
             }
             Text(generationMessage, color = TextMuted, fontSize = 12.sp)
             Text("Native ARM64 inference is connected. Model compatibility depends on the selected checkpoint.", color = TextMuted, fontSize = 12.sp)

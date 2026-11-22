@@ -10,7 +10,7 @@ static sd_ctx_t* g_ctx = nullptr;
 static std::mutex g_ctx_mutex;
 static std::atomic<int> g_progress_step{0};
 static std::atomic<int> g_progress_total{0};
-static void progressCallback(int step, int steps, float, void*) { g_progress_step.store(step); g_progress_total.store(steps); }
+static void progressCallback(const sd_generation_progress_t* progress, void*) { if (!progress) return; g_progress_step.store((int)progress->completed); g_progress_total.store((int)progress->total); }
 static void throwJava(JNIEnv* env, const char* message) { jclass cls=env->FindClass("java/lang/IllegalStateException"); if(cls) env->ThrowNew(cls,message?message:"Native diffusion operation failed"); }
 extern "C" JNIEXPORT jstring JNICALL Java_com_winsmediatam_diff_NativeRuntime_getRuntimeStatus(JNIEnv* env,jobject) {
 #ifdef DIFF_HAS_SDCPP

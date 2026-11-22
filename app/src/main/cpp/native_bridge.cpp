@@ -5,8 +5,12 @@
 #include <mutex>
 #include <vector>
 #include <cstdlib>
+#include <atomic>
 static sd_ctx_t* g_ctx = nullptr;
 static std::mutex g_ctx_mutex;
+static std::atomic<int> g_progress_step{0};
+static std::atomic<int> g_progress_total{0};
+static void progressCallback(int step, int steps, float, void*) { g_progress_step.store(step); g_progress_total.store(steps); }
 static void throwJava(JNIEnv* env, const char* message) { jclass cls=env->FindClass("java/lang/IllegalStateException"); if(cls) env->ThrowNew(cls,message?message:"Native diffusion operation failed"); }
 extern "C" JNIEXPORT jstring JNICALL Java_com_winsmediatam_diff_NativeRuntime_getRuntimeStatus(JNIEnv* env,jobject) {
 #ifdef DIFF_HAS_SDCPP
@@ -46,6 +50,15 @@ extern "C" JNIEXPORT void JNICALL Java_com_winsmediatam_diff_NativeRuntime_relea
  std::lock_guard<std::mutex> lock(g_ctx_mutex);if(g_ctx){sd_ctx_free(g_ctx);g_ctx=nullptr;}
 #endif
 }
+extern "C" JNIEXPORT void JNICALL Java_com_winsmediatam_diff_NativeRuntime_cancelGeneration(JNIEnv*,jobject) {
+#ifdef DIFF_HAS_SDCPP
+ if(g_ctx) sd_cancel_generation(g_ctx, SD_CANCEL_ALL);
+#endif
+}
+extern "C" JNIEXPORT jintArray JNICALL Java_com_winsmediatam_diff_NativeRuntime_getGenerationProgress(JNIEnv* env,jobject) {
+ jint values[2]={g_progress_step.load(),g_progress_total.load()};
+ jintArray arr=env->NewIntArray(2); if(arr) env->SetIntArrayRegion(arr,0,2,values); return arr;
+}
 extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_generateBitmap(JNIEnv* env,jobject,jstring prompt,jstring negative,jint width,jint height,jint steps,jfloat cfg,jlong seed) {
 #ifdef DIFF_HAS_SDCPP
  if(!prompt||width<64||height<64||width>2048||height>2048||steps<1||steps>100){throwJava(env,"Invalid generation parameters.");return nullptr;}
@@ -59,7 +72,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_ge
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"sample.steps",steps);
  if(status==SD_STATUS_OK)status=sd_opt_set_float(opts,"sample.guidance.txt_cfg",cfg);
  if(status==SD_STATUS_OK)status=sd_opt_set_string(opts,"sample.method","euler");
- if(status==SD_STATUS_OK)status=sd_generate_image(g_ctx,opts,&result);
+ if(status==SD_STATUS_OK){ g_progress_step.store(0); g_progress_total.store(0); sd_set_generation_progress_callback(g_ctx, progressCallback, nullptr); status=sd_generate_image(g_ctx,opts,&result); sd_set_generation_progress_callback(g_ctx,nullptr,nullptr); }
  env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);if(opts)sd_opt_free(opts);
  if(status!=SD_STATUS_OK||!result||sd_result_get_image_count(result)==0){const char* err=sd_get_last_error();throwJava(env,err?err:"Image generation failed.");if(result)sd_result_free(result);return nullptr;}
  const sd_tensor_t* tensor=sd_result_get_image(result,0);if(!tensor||sd_tensor_type(tensor)!=SD_TENSOR_U8||sd_tensor_rank(tensor)!=3){sd_result_free(result);throwJava(env,"Unsupported native output tensor.");return nullptr;}

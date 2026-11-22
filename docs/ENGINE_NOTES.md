@@ -9,6 +9,7 @@ Diff AI Studio targets offline on-device inference, ARM64 first.
 - Image-to-image picker copies source into app-private storage, downsamples/normalizes it to PNG, and passes init_image plus strength
 - Mask editor paints white strokes on a black mask and passes mask_image with the selected source image
 - Sequential batch UI runs up to four separate native calls and stores each successful result
+- Gallery offers 2× filtered bitmap resize (not AI upscaling)
 - Source option/API wiring is not compiled or runtime verified
 
 ## Device constraints
@@ -23,5 +24,5 @@ Diff AI Studio targets offline on-device inference, ARM64 first.
 3. Test txt2img, img2img and inpainting using supported checkpoints.
 4. Validate mask polarity and inpaint behavior.
 5. Validate batch, progress, cancellation, errors, image orientation/color, memory and thermals.
-6. Implement/benchmark upscale.
+6. Add an actual AI upscaler if supported models/backend become available; the current 2× resize is conventional interpolation.
 7. Complete tests, compatibility, privacy/licensing and Play release qualification.

@@ -142,7 +142,6 @@ private fun CreateScreen(
     var showManagePresets by remember { mutableStateOf(false) }
     var presetName by remember { mutableStateOf("") }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var initImagePath by remember { mutableStateOf<String?>(null) }
     var initImagePreview by remember { mutableStateOf<Bitmap?>(null) }

@@ -2,25 +2,25 @@
 
 Diff AI Studio targets offline on-device inference, ARM64 first.
 
-## Source status
-- Android CMake/JNI bridge fetches a pinned stable-diffusion.cpp revision
-- Native model load and txt2img option wiring are source implemented
-- Native progress callback and cancel wiring are integrated
-- The progress callback declaration was checked against the pinned public header and uses the context-local progress struct
-- Upstream C API/docs confirm image input key `init_image`, image mask `mask_image`, image strength `strength`, batch count `batch_count`, and sampler/scheduler keys `sample.method` / `sample.scheduler`
-- JNI/API source is still **not compiled or device tested**
+## Source integration status
+- Pinned stable-diffusion.cpp CMake/JNI integration
+- Model load/release and text-to-image options
+- Progress callback, cancellation and tensor-to-Bitmap conversion
+- Sampler/scheduler option wiring
+- Image-to-image source picker copies source to private app files and passes path with init_image; strength passed via strength
+- Source option/API wiring is not compiled or runtime verified
 
 ## Device constraints
-- ARM64 CPU baseline target; no GPU acceleration claims
+- ARM64 CPU baseline target; no GPU acceleration claim
 - Model compatibility, quantization and peak memory depend on checkpoint, resolution and device
-- The RAM guard is a heuristic, not a guarantee against OOM
-- Private generation history currently stores PNGs and metadata locally
+- RAM guard is heuristic, not an OOM guarantee
+- Gallery uses private local PNG history; input images are kept in app-private storage
 
-## Release gates
-1. Build pinned native engine/JNI and fix compile/link issues.
-2. Validate native loading and inference with a compatible model.
-3. Add image-to-image image picker, tensor conversion and native option.
-4. Add inpainting mask editor and batch/sampler/scheduler controls.
-5. Test cancel, progress, failure, output orientation/color and memory behavior.
-6. Add upscale and optimization/benchmark tests.
-7. Complete UI/repository tests, device matrix, privacy/licensing and Play release qualification.
+## Remaining native gates
+1. Compile and link pinned engine/JNI.
+2. Confirm option names/signatures and supported image formats.
+3. Test txt2img and img2img using supported checkpoints.
+4. Add inpainting mask support and batch generation.
+5. Validate progress, cancellation, error paths, image orientation/color, memory and thermal behavior.
+6. Implement/benchmark upscale.
+7. Complete tests, compatibility, privacy/licensing and Play release qualification.

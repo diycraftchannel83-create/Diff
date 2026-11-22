@@ -91,7 +91,7 @@ fun DiffApp() {
                 0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it })
                 1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
-                    isDownloading = true; downloadError = null; downloadProgress = 0f; downloadedBytes = 0L
+                    isDownloading = true; downloadError = null; downloadedBytes = OfflineModelDownloader.partialDownloadBytes(context); downloadProgress = if (downloadTotalBytes > 0L) downloadedBytes.toFloat() / downloadTotalBytes else 0f
                     downloadJob = coroutineScope.launch {
                         try {
                             OfflineModelDownloader.downloadAndInstall(context) { received, total -> downloadedBytes = received; downloadTotalBytes = total; downloadProgress = if (total > 0L) received.toFloat() / total else 0f }
@@ -203,14 +203,14 @@ private fun ModelManagerScreen(modifier: Modifier, models: List<LocalModel>, onI
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("DOWNLOAD MODEL OFFLINE", color = Accent, fontWeight = FontWeight.Bold)
                     Text("Stable Diffusion 1.5 Q8 GGUF • ~1.88 GB • CreativeML OpenRAIL-M", color = TextMuted, fontSize = 12.sp)
-                    Text("Download inside the app. The ZIP is extracted automatically and the GGUF is added to Local Models.", fontSize = 13.sp)
+                    Text("Download inside the app. ZIP extraction and model import are automatic. If canceled or interrupted, the partial download is kept and resumed on the next attempt when the server supports Range requests.", fontSize = 13.sp)
                     if (downloading) {
                         LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                         Text("${(progress * 100).toInt()}% • ${ModelRepository.formatSize(downloaded)} / ${ModelRepository.formatSize(total)}", color = TextMuted, fontSize = 12.sp)
                         OutlinedButton(onClick = onCancelDownload, modifier = Modifier.fillMaxWidth()) { Text("Cancel download") }
                     } else Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Download, null); Spacer(Modifier.width(8.dp)); Text("Download SD 1.5 Offline Model") }
                     if (downloadError != null) Text(downloadError, color = Color(0xFFFF6B6B), fontSize = 12.sp)
-                    Text("Source: Hugging Face • Download requires internet and about 4 GB free storage.", color = TextMuted, fontSize = 11.sp)
+                    Text("Source: Hugging Face • Internet required • Allow about 4 GB free. Cancel keeps partial data for resume.", color = TextMuted, fontSize = 11.sp)
                 }
             }
         }

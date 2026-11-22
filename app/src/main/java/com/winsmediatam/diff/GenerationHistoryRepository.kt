@@ -85,23 +85,33 @@ class GenerationHistoryRepository(context: Context) {
     @Synchronized
     fun resize2x(entry: GenerationHistoryEntry): GenerationHistoryEntry {
         val original = BitmapFactory.decodeFile(entry.filePath) ?: error("Could not read source image")
-        require(original.width <= 2048 && original.height <= 2048) { "2x resize is limited to source images up to 2048px per side" }
-        val memoryInfo = ActivityManager.MemoryInfo().also { (appContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(it) }
-        val estimatedMb = original.width.toLong() * original.height.toLong() * 16L / (1024L * 1024L)
-        require(memoryInfo.availMem / (1024L * 1024L) >= estimatedMb + 256L) { "Not enough free RAM for a 2x resize. Try a smaller image or close other apps." }
-        val scaled = Bitmap.createScaledBitmap(original, original.width * 2, original.height * 2, true)
-        val id = UUID.randomUUID().toString()
-        val file = File(directory, "$id.png")
-        file.outputStream().use { output -> check(scaled.compress(Bitmap.CompressFormat.PNG, 100, output)) { "Could not save resized image" } }
-        val result = entry.copy(id = id, filePath = file.absolutePath, width = original.width * 2, height = original.height * 2, createdAt = System.currentTimeMillis(), favorite = false, initImagePath = null, maskImagePath = null, prompt = entry.prompt + " [2x non-AI resize]")
-        val updated = (listOf(result) + list()).take(100)
-        list().drop(99).forEach { File(it.filePath).delete() }
-        write(updated)
-        if (scaled !== original) scaled.recycle()
-        if (original !== scaled) original.recycle()
-        return result
+        var scaled: Bitmap? = null
+        var outputFile: File? = null
+        try {
+            require(original.width <= 2048 && original.height <= 2048) { "2x resize is limited to source images up to 2048px per side" }
+            val memoryInfo = ActivityManager.MemoryInfo().also { (appContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(it) }
+            val estimatedMb = original.width.toLong() * original.height.toLong() * 16L / (1024L * 1024L)
+            require(memoryInfo.availMem / (1024L * 1024L) >= estimatedMb + 256L) { "Not enough free RAM for a 2x resize. Try a smaller image or close other apps." }
+            scaled = Bitmap.createScaledBitmap(original, original.width * 2, original.height * 2, true)
+            val id = UUID.randomUUID().toString()
+            val file = File(directory, "$id.png")
+            outputFile = file
+            file.outputStream().use { output ->
+                check(scaled!!.compress(Bitmap.CompressFormat.PNG, 100, output)) { "Could not save resized image" }
+            }
+            val result = entry.copy(id = id, filePath = file.absolutePath, width = original.width * 2, height = original.height * 2, createdAt = System.currentTimeMillis(), favorite = false, initImagePath = null, maskImagePath = null, prompt = entry.prompt + " [2x non-AI resize]")
+            val existing = list()
+            write((listOf(result) + existing).take(100))
+            existing.drop(99).forEach { File(it.filePath).delete() }
+            return result
+        } catch (error: Throwable) {
+            outputFile?.delete()
+            throw error
+        } finally {
+            scaled?.takeIf { it !== original }?.recycle()
+            original.recycle()
+        }
     }
-
     fun exportToPictures(entry: GenerationHistoryEntry): String {
         val source = File(entry.filePath)
         require(source.exists()) { "Saved image file is missing" }

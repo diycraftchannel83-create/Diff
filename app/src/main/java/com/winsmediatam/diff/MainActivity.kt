@@ -126,7 +126,7 @@ private fun CreateScreen(
     steps: Float, onSteps: (Float) -> Unit, cfg: Float, onCfg: (Float) -> Unit,
     width: String, onWidth: (String) -> Unit, height: String, onHeight: (String) -> Unit,
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
-    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit
+    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit, historyRepository: GenerationHistoryRepository
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     var presetMenuExpanded by remember { mutableStateOf(false) }
@@ -152,6 +152,12 @@ private fun CreateScreen(
             Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark), shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Prompt", fontWeight = FontWeight.Bold)
+                    Box {
+                        TextButton(onClick = { presetMenuExpanded = true }) { Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(6.dp)); Text("Prompt presets") }
+                        DropdownMenu(expanded = presetMenuExpanded, onDismissRequest = { presetMenuExpanded = false }) {
+                            promptPresets.forEach { (name, preset) -> DropdownMenuItem(text = { Text(name) }, onClick = { onPrompt(if (prompt.isBlank()) preset else "$prompt, $preset"); presetMenuExpanded = false }) }
+                        }
+                    }
                     OutlinedTextField(value = prompt, onValueChange = onPrompt, modifier = Modifier.fillMaxWidth(), minLines = 4, placeholder = { Text("Describe the image you want to create…") })
                     Text("Negative prompt", fontWeight = FontWeight.Bold)
                     OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })

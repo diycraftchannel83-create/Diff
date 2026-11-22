@@ -62,7 +62,8 @@ fun GalleryScreen(modifier: Modifier, history: GenerationHistoryRepository, onRe
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         OutlinedButton(onClick = { val updated = history.toggleFavorite(entry); entries = entries.map { if (it.id == entry.id) updated else it } }) { Icon(Icons.Default.Favorite, null, tint = if (entry.favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant); Text(if (entry.favorite) "Favorited" else "Favorite") }
-                        OutlinedButton(onClick = { runCatching { history.resize2x(entry) }.onSuccess { entries = history.list(); actionMessage = "Created 2× resized image (non-AI)." }.onFailure { actionMessage = it.message ?: "Resize failed" } }) { Text("2× Resize") }\n                        OutlinedButton(onClick = { onReusePrompt(entry) }) { Text("Reuse prompt") }
+                        OutlinedButton(onClick = { runCatching { history.resize2x(entry) }.onSuccess { entries = history.list(); actionMessage = "Created 2× resized image (non-AI)." }.onFailure { actionMessage = it.message ?: "Resize failed" } }) { Text("2× Resize") }
+                        OutlinedButton(onClick = { onReusePrompt(entry) }) { Text("Reuse prompt") }
                         OutlinedButton(onClick = { runCatching { history.exportToPictures(entry) }.onSuccess { actionMessage = "Exported to Pictures/Diff AI Studio" }.onFailure { actionMessage = it.message ?: "Export failed" } }) { Text("Export") }
                         OutlinedButton(onClick = { runCatching {
                             val fileUri = FileProvider.getUriForFile(context, context.packageName + ".fileprovider", File(entry.filePath))

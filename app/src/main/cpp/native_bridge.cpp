@@ -57,7 +57,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_com_winsmediatam_diff_NativeRuntime_ge
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"height",height);
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"seed",seed);
  if(status==SD_STATUS_OK)status=sd_opt_set_int(opts,"sample.steps",steps);
- if(status==SD_STATUS_OK)status=sd_opt_set_float(opts,"cfg_scale",cfg);
+ if(status==SD_STATUS_OK)status=sd_opt_set_float(opts,"sample.guidance.txt_cfg",cfg);
  if(status==SD_STATUS_OK)status=sd_opt_set_string(opts,"sample.method","euler");
  if(status==SD_STATUS_OK)status=sd_generate_image(g_ctx,opts,&result);
  env->ReleaseStringUTFChars(prompt,p);if(n)env->ReleaseStringUTFChars(negative,n);if(opts)sd_opt_free(opts);

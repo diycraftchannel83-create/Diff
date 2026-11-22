@@ -8,7 +8,7 @@ object NativeRuntime {
     external fun releaseModel()
     external fun cancelGeneration()
     external fun getGenerationProgress(): IntArray
-    external fun generateBitmap(prompt: String, negativePrompt: String, width: Int, height: Int, steps: Int, cfg: Float, seed: Long): Bitmap?
+    external fun generateBitmap(prompt: String, negativePrompt: String, width: Int, height: Int, steps: Int, cfg: Float, seed: Long, sampler: String, scheduler: String): Bitmap?
     fun status() = if (loaded) getRuntimeStatus() else "Native library failed to load. Check ABI/build configuration."
     fun architecture() = if (loaded) getNativeArchitecture() else "Unavailable"
     fun isAvailable() = loaded

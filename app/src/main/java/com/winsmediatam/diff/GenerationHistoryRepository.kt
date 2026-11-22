@@ -26,7 +26,9 @@ data class GenerationHistoryEntry(
     val favorite: Boolean = false,
     val initImagePath: String? = null,
     val strength: Float = 0.65f,
-    val maskImagePath: String? = null
+    val maskImagePath: String? = null,
+    val sampler: String = "auto",
+    val scheduler: String = "auto"
 )
 
 class GenerationHistoryRepository(context: Context) {
@@ -36,13 +38,13 @@ class GenerationHistoryRepository(context: Context) {
     private val key = "entries"
 
     @Synchronized
-    fun save(bitmap: Bitmap, prompt: String, negative: String, width: Int, height: Int, steps: Int, cfg: Float, seed: Long, initImagePath: String? = null, strength: Float = 0.65f, maskImagePath: String? = null): GenerationHistoryEntry {
+    fun save(bitmap: Bitmap, prompt: String, negative: String, width: Int, height: Int, steps: Int, cfg: Float, seed: Long, initImagePath: String? = null, strength: Float = 0.65f, maskImagePath: String? = null, sampler: String = "auto", scheduler: String = "auto"): GenerationHistoryEntry {
         val id = UUID.randomUUID().toString()
         val file = File(directory, "$id.png")
         file.outputStream().use { stream ->
             check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)) { "Could not save generated image" }
         }
-        val entry = GenerationHistoryEntry(id, file.absolutePath, prompt, negative, width, height, steps, cfg, seed, System.currentTimeMillis(), false, initImagePath, strength, maskImagePath)
+        val entry = GenerationHistoryEntry(id, file.absolutePath, prompt, negative, width, height, steps, cfg, seed, System.currentTimeMillis(), false, initImagePath, strength, maskImagePath, sampler, scheduler)
         val entries = list().toMutableList().also { it.add(0, entry) }
         val retained = entries.take(100)
         entries.drop(100).forEach { File(it.filePath).delete() }
@@ -62,7 +64,7 @@ class GenerationHistoryRepository(context: Context) {
                     item.getString("id"), item.getString("file"), item.optString("prompt"),
                     item.optString("negative"), item.optInt("width"), item.optInt("height"),
                     item.optInt("steps"), item.optDouble("cfg").toFloat(), item.optLong("seed"),
-                    item.optLong("created"), item.optBoolean("favorite", false), item.optString("initImagePath").takeIf { it.isNotBlank() }, item.optDouble("strength", 0.65).toFloat(), item.optString("maskImagePath").takeIf { it.isNotBlank() }
+                    item.optLong("created"), item.optBoolean("favorite", false), item.optString("initImagePath").takeIf { it.isNotBlank() }, item.optDouble("strength", 0.65).toFloat(), item.optString("maskImagePath").takeIf { it.isNotBlank() }, item.optString("sampler", "auto"), item.optString("scheduler", "auto")
                 )
             }.getOrNull() ?: continue
             if (File(entry.filePath).exists()) result.add(entry)
@@ -128,7 +130,7 @@ class GenerationHistoryRepository(context: Context) {
             array.put(JSONObject().put("id", entry.id).put("file", entry.filePath)
                 .put("prompt", entry.prompt).put("negative", entry.negativePrompt)
                 .put("width", entry.width).put("height", entry.height).put("steps", entry.steps)
-                .put("cfg", entry.cfg.toDouble()).put("seed", entry.seed).put("created", entry.createdAt).put("favorite", entry.favorite).put("initImagePath", entry.initImagePath ?: "").put("strength", entry.strength).put("maskImagePath", entry.maskImagePath ?: ""))
+                .put("cfg", entry.cfg.toDouble()).put("seed", entry.seed).put("created", entry.createdAt).put("favorite", entry.favorite).put("initImagePath", entry.initImagePath ?: "").put("strength", entry.strength).put("maskImagePath", entry.maskImagePath ?: "").put("sampler", entry.sampler).put("scheduler", entry.scheduler))
         }
         prefs.edit().putString(key, array.toString()).apply()
     }

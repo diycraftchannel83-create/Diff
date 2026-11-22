@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.compose.runtime.collectAsState
@@ -89,6 +90,7 @@ fun DiffApp() {
     var showAdvanced by remember { mutableStateOf(false) }
     var generatedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var generating by remember { mutableStateOf(false) }
+    var generationProgress by remember { mutableFloatStateOf(0f)
     var generationMessage by remember { mutableStateOf("Select a compatible GGUF model to begin.") }
     var loadedModelPath by remember { mutableStateOf<String?>(null) }
 
@@ -104,7 +106,7 @@ fun DiffApp() {
             }
         }) { padding ->
             when (selectedTab) {
-                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it })
+                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it }, generationProgress, { generationProgress = it })
                 1 -> EmptyScreen(Modifier.padding(padding), "Gallery", "Generated images will appear here.")
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
                     OfflineModelDownloadWorker.enqueue(context)
@@ -213,7 +215,7 @@ private fun CreateScreen(
                     onGenerationMessage("Not enough available RAM for ${requestedWidth}×${requestedHeight}. Available ${availableMemoryMb} MB; estimated safe minimum ${requiredMemoryMb} MB. Try 512×512.")
                     return@Button
                 }
-                onGenerating(true); onGenerationMessage("RAM check passed (${availableMemoryMb} MB available). Loading model and generating…")
+                onGenerating(true); onProgress(0f); onGenerationMessage("RAM check passed (${availableMemoryMb} MB available). Loading model and generating…")
                 coroutineScope.launch {
                     try {
                         if (loadedModelPath != selectedModel.id) {
@@ -224,10 +226,18 @@ private fun CreateScreen(
                             onGenerationMessage("Model loaded. Starting generation…")
                         }
                         val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L
-                        val bitmap = withContext(Dispatchers.IO) {
+                        val generationJob = coroutineScope.launch(Dispatchers.IO) {
                             NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed)
                         }
+                        var bitmap: Bitmap? = null
+                        while (generationJob.isActive) {
+                            val progress = withContext(Dispatchers.IO) { NativeRuntime.getGenerationProgress() }
+                            if (progress.size >= 2 && progress[1] > 0) onProgress((progress[0].toFloat() / progress[1]).coerceIn(0f, 1f))
+                            delay(400)
+                        }
+                        bitmap = generationJob.await()
                         onBitmap(bitmap)
+                        onProgress(1f)
                         onGenerationMessage(if (bitmap != null) "Generation complete." else "No image was returned.")
                     } catch (e: Exception) {
                         onGenerationMessage(e.message ?: "Generation failed.")

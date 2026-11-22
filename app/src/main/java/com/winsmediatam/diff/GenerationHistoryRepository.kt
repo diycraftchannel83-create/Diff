@@ -2,6 +2,7 @@ package com.winsmediatam.diff
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
@@ -73,6 +74,23 @@ class GenerationHistoryRepository(context: Context) {
         val updated = entry.copy(favorite = !entry.favorite)
         write(list().map { if (it.id == entry.id) updated else it })
         return updated
+    }
+
+    @Synchronized
+    fun resize2x(entry: GenerationHistoryEntry): GenerationHistoryEntry {
+        val original = BitmapFactory.decodeFile(entry.filePath) ?: error("Could not read source image")
+        require(original.width <= 2048 && original.height <= 2048) { "2x resize is limited to source images up to 2048px per side" }
+        val scaled = Bitmap.createScaledBitmap(original, original.width * 2, original.height * 2, true)
+        val id = UUID.randomUUID().toString()
+        val file = File(directory, "$id.png")
+        file.outputStream().use { output -> check(scaled.compress(Bitmap.CompressFormat.PNG, 100, output)) { "Could not save resized image" } }
+        val result = entry.copy(id = id, filePath = file.absolutePath, width = original.width * 2, height = original.height * 2, createdAt = System.currentTimeMillis(), favorite = false, prompt = entry.prompt + " [2x non-AI resize]")
+        val updated = (listOf(result) + list()).take(100)
+        list().drop(99).forEach { File(it.filePath).delete() }
+        write(updated)
+        if (scaled !== original) scaled.recycle()
+        if (original !== scaled) original.recycle()
+        return result
     }
 
     fun exportToPictures(entry: GenerationHistoryEntry): String {

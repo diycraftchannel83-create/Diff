@@ -121,7 +121,8 @@ private fun CreateScreen(
     negative: String, onNegative: (String) -> Unit, models: List<LocalModel>, selectedModelId: String?, onModelSelected: (String?) -> Unit,
     steps: Float, onSteps: (Float) -> Unit, cfg: Float, onCfg: (Float) -> Unit,
     width: String, onWidth: (String) -> Unit, height: String, onHeight: (String) -> Unit,
-    seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit
+    seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
+    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }

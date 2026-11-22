@@ -128,7 +128,9 @@ private fun CreateScreen(
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
     generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit
 ) {
-    var modelMenuExpanded by remember { mutableStateOf(false) }\n    var presetMenuExpanded by remember { mutableStateOf(false) }\n    val promptPresets = PromptPresets.all
+    var modelMenuExpanded by remember { mutableStateOf(false) }
+    var presetMenuExpanded by remember { mutableStateOf(false) }
+    val promptPresets = PromptPresets.all
     var presetMenuExpanded by remember { mutableStateOf(false) }
     val promptPresets = PromptPresets.all
     val selectedModel = models.firstOrNull { it.id == selectedModelId }

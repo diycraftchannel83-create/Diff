@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.Image
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.text.font.FontWeight
@@ -169,7 +171,7 @@ private fun CreateScreen(
                         if (userPresets.isNotEmpty()) OutlinedButton(onClick = { showManagePresets = true }) { Text("Manage presets") }
                     }
                     Text("Negative prompt", fontWeight = FontWeight.Bold)
-                    OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })
+                    OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })\n                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { imagePicker.launch("image/*") }) { Text(if (initImagePath == null) "Add image-to-image source" else "Change source image") }; if (initImagePath != null) OutlinedButton(onClick = { initImagePath = null; initImagePreview = null }) { Text("Remove source") } }\n                    initImagePreview?.let { Image(it.asImageBitmap(), contentDescription = "Image-to-image source", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp)) }\n                    if (initImagePath != null) { Text("Image-to-image strength: ${(imageStrength * 100).toInt()}%"); Slider(value = imageStrength, onValueChange = { imageStrength = it }, valueRange = 0.05f..1f) }
                 }
             }
         }
@@ -251,7 +253,7 @@ private fun CreateScreen(
                         }
                         val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L
                         val generationJob = coroutineScope.async(Dispatchers.IO) {
-                            NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed, sampler, scheduler)
+                            NativeRuntime.generateBitmap(prompt, negative, requestedWidth, requestedHeight, steps.toInt(), cfg, parsedSeed, sampler, scheduler, initImagePath ?: "", imageStrength)
                         }
                         var bitmap: Bitmap? = null
                         while (generationJob.isActive) {

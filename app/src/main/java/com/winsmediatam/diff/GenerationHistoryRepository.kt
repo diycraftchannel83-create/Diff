@@ -17,7 +17,8 @@ data class GenerationHistoryEntry(
     val steps: Int,
     val cfg: Float,
     val seed: Long,
-    val createdAt: Long
+    val createdAt: Long,
+    val favorite: Boolean = false
 )
 
 class GenerationHistoryRepository(context: Context) {
@@ -51,12 +52,19 @@ class GenerationHistoryRepository(context: Context) {
                     item.getString("id"), item.getString("file"), item.optString("prompt"),
                     item.optString("negative"), item.optInt("width"), item.optInt("height"),
                     item.optInt("steps"), item.optDouble("cfg").toFloat(), item.optLong("seed"),
-                    item.optLong("created")
+                    item.optLong("created"), item.optBoolean("favorite", false)
                 )
             }.getOrNull() ?: continue
             if (File(entry.filePath).exists()) result.add(entry)
         }
         return result
+    }
+
+    @Synchronized
+    fun toggleFavorite(entry: GenerationHistoryEntry): GenerationHistoryEntry {
+        val updated = entry.copy(favorite = !entry.favorite)
+        write(list().map { if (it.id == entry.id) updated else it })
+        return updated
     }
 
     @Synchronized

@@ -23,7 +23,7 @@
 - [x] Image-to-image picker, persistent private input copy, downscaled preview/input and strength slider
 - [x] JNI option wiring for init_image and strength (source only)
 - [x] Sequential batch generation up to 4 images with aggregate progress, cancel and per-image history (source)
-- [x] Interactive inpainting mask editor (paint/clear/apply) and mask_image JNI option wiring (source)
+- [x] Interactive inpainting mask editor and mask_image JNI option wiring (source)
 - [ ] Validate image-to-image, batch and inpainting native API behavior on-device
 - [ ] Reuse full image-to-image/mask configuration from history
 - [ ] More verified sampler/scheduler compatibility options
@@ -38,7 +38,8 @@
 - [x] Metadata detail view
 - [x] Delete, reuse prompt, export to Pictures and Android share
 - [x] History cap with pruning of evicted generated PNGs
-- [ ] Upscale workflow
+- [x] 2x filtered resize workflow (non-AI; explicitly labeled)
+- [ ] AI upscale model/pipeline
 
 ## Phase 5 — Release quality
 - [x] Model extension tests source

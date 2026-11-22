@@ -140,12 +140,15 @@ private fun CreateScreen(
     var userPresets by remember { mutableStateOf(userPresetRepository.list()) }
     var showSavePreset by remember { mutableStateOf(false) }
     var showManagePresets by remember { mutableStateOf(false) }
-    var presetName by remember { mutableStateOf("") }\n    var batchCount by remember { mutableIntStateOf(1) } }
+    var presetName by remember { mutableStateOf("") }
+    var batchCount by remember { mutableIntStateOf(1) } }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
     val coroutineScope = rememberCoroutineScope()
     var initImagePath by remember { mutableStateOf<String?>(null) }
     var initImagePreview by remember { mutableStateOf<Bitmap?>(null) }
-    var imageStrength by remember { mutableFloatStateOf(0.65f) }\n    var maskImagePath by remember { mutableStateOf<String?>(null) }\n    var showMaskEditor by remember { mutableStateOf(false) }
+    var imageStrength by remember { mutableFloatStateOf(0.65f) }
+    var maskImagePath by remember { mutableStateOf<String?>(null) }
+    var showMaskEditor by remember { mutableStateOf(false) }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) coroutineScope.launch {
             runCatching { withContext(Dispatchers.IO) {
@@ -164,7 +167,10 @@ private fun CreateScreen(
         }
     }
     val deviceCapabilities = remember(context) { DeviceCapabilities.current(context) }
-    if (showMaskEditor && initImagePreview != null) {\n        MaskEditorDialog(source = initImagePreview!!, onDismiss = { showMaskEditor = false }, onApply = { mask -> runCatching { val file = File(File(context.filesDir, "img2img_masks").apply { mkdirs() }, "mask_${System.currentTimeMillis()}.png"); file.outputStream().use { output -> check(mask.compress(Bitmap.CompressFormat.PNG, 100, output)) }; maskImagePath = file.absolutePath; showMaskEditor = false }.onFailure { onGenerationMessage(it.message ?: "Could not save mask") } })\n    }\n    if (showManagePresets) {
+    if (showMaskEditor && initImagePreview != null) {
+        MaskEditorDialog(source = initImagePreview!!, onDismiss = { showMaskEditor = false }, onApply = { mask -> runCatching { val file = File(File(context.filesDir, "img2img_masks").apply { mkdirs() }, "mask_${System.currentTimeMillis()}.png"); file.outputStream().use { output -> check(mask.compress(Bitmap.CompressFormat.PNG, 100, output)) }; maskImagePath = file.absolutePath; showMaskEditor = false }.onFailure { onGenerationMessage(it.message ?: "Could not save mask") } })
+    }
+    if (showManagePresets) {
         AlertDialog(onDismissRequest = { showManagePresets = false }, title = { Text("Manage custom presets") },
             text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { userPresets.forEach { preset -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) { Text(preset.name, modifier = Modifier.weight(1f)); TextButton(onClick = { userPresetRepository.delete(preset.name); userPresets = userPresetRepository.list() }) { Text("Delete") } } } } },
             confirmButton = { TextButton(onClick = { showManagePresets = false }) { Text("Close") } })
@@ -204,7 +210,8 @@ private fun CreateScreen(
                     }
                     Text("Negative prompt", fontWeight = FontWeight.Bold)
                     OutlinedTextField(value = negative, onValueChange = onNegative, modifier = Modifier.fillMaxWidth(), minLines = 2, placeholder = { Text("Optional: elements to avoid") })
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { imagePicker.launch("image/*") }) { Text(if (initImagePath == null) "Add image-to-image source" else "Change source image") }; if (initImagePath != null) OutlinedButton(onClick = { initImagePath = null; initImagePreview = null; maskImagePath = null }) { Text("Remove source") } }\n                    if (initImagePreview != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { showMaskEditor = true }) { Text(if (maskImagePath == null) "Paint inpainting mask" else "Edit mask") }; if (maskImagePath != null) OutlinedButton(onClick = { maskImagePath = null }) { Text("Clear mask") } }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { imagePicker.launch("image/*") }) { Text(if (initImagePath == null) "Add image-to-image source" else "Change source image") }; if (initImagePath != null) OutlinedButton(onClick = { initImagePath = null; initImagePreview = null; maskImagePath = null }) { Text("Remove source") } }
+                    if (initImagePreview != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { showMaskEditor = true }) { Text(if (maskImagePath == null) "Paint inpainting mask" else "Edit mask") }; if (maskImagePath != null) OutlinedButton(onClick = { maskImagePath = null }) { Text("Clear mask") } }
                     initImagePreview?.let { Image(it.asImageBitmap(), contentDescription = "Image-to-image source", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp)) }
                     if (initImagePath != null) { Text("Image-to-image strength: ${(imageStrength * 100).toInt()}%"); Slider(value = imageStrength, onValueChange = { imageStrength = it }, valueRange = 0.05f..1f) }
                 }
@@ -243,7 +250,9 @@ private fun CreateScreen(
                     Slider(value = cfg, onValueChange = onCfg, valueRange = 1f..20f)
                     TextButton(onClick = { onAdvanced(!advanced) }) { Text(if (advanced) "Hide advanced settings" else "Advanced settings") }
                     if (advanced) {
-                        OutlinedTextField(value = seed, onValueChange = onSeed, modifier = Modifier.fillMaxWidth(), label = { Text("Seed (-1 = random)") })\n                        Text("Batch count: $batchCount (max 4)")\n                        Slider(value = batchCount.toFloat(), onValueChange = { batchCount = it.toInt().coerceIn(1, 4) }, valueRange = 1f..4f, steps = 2)
+                        OutlinedTextField(value = seed, onValueChange = onSeed, modifier = Modifier.fillMaxWidth(), label = { Text("Seed (-1 = random)") })
+                        Text("Batch count: $batchCount (max 4)")
+                        Slider(value = batchCount.toFloat(), onValueChange = { batchCount = it.toInt().coerceIn(1, 4) }, valueRange = 1f..4f, steps = 2)
                         Text("Sampler", color = TextMuted, fontSize = 12.sp)
                         SettingsDropdown("Sampler", sampler, listOf("auto", "euler", "euler_a", "heun", "dpm2", "dpm++2m", "lcm", "ddim_trailing", "tcd", "lms"), onSampler)
                         Text("Scheduler", color = TextMuted, fontSize = 12.sp)

@@ -11,7 +11,8 @@ Diff AI Studio targets offline on-device inference, ARM64 first.
 - Sequential batch UI runs up to four separate native calls and stores each successful result
 - History restore reinstates sampler/scheduler and image-to-image source, strength and mask if source files remain available
 - Custom prompt preset names/prompts are normalized and validated before persistence
-- Gallery offers 2× filtered bitmap resize (not AI upscaling)
+- Gallery offers 2× filtered bitmap resize (not AI upscaling); bitmap memory is released in a finally path and partial output files are removed on failure
+- History JSON writes retain the previous valid snapshot as a recovery fallback when the primary snapshot is unreadable
 - Source option/API wiring is not compiled or runtime verified
 
 ## Device constraints

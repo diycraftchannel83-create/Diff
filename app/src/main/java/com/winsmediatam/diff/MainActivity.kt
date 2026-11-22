@@ -126,6 +126,7 @@ private fun CreateScreen(
     var modelMenuExpanded by remember { mutableStateOf(false) }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val deviceCapabilities = remember(context) { DeviceCapabilities.current(context) }
     LazyColumn(modifier.fillMaxSize().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
@@ -201,7 +202,7 @@ private fun CreateScreen(
                     try {
                         val bitmap = withContext(Dispatchers.IO) {
                             if (loadedModelPath != selectedModel.id) {
-                                NativeRuntime.loadModel(selectedModel.id, deviceCapabilities.recommendedThreads)
+                                NativeRuntime.loadModel(selectedModel.id, Runtime.getRuntime().availableProcessors().coerceIn(1, 4))
                                 onLoadedModel(selectedModel.id)
                             }
                             val parsedSeed = seed.toLongOrNull()?.takeIf { it >= 0L } ?: -1L

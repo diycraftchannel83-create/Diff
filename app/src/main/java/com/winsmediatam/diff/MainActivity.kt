@@ -97,7 +97,8 @@ private fun CreateScreen(
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     val selectedModel = models.firstOrNull { it.id == selectedModelId }
-    val deviceCapabilities = remember { DeviceCapabilities.current(LocalContext.current) }
+    val context = LocalContext.current
+    val deviceCapabilities = remember(context) { DeviceCapabilities.current(context) }
     LazyColumn(modifier.fillMaxSize().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {

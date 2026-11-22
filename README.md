@@ -8,7 +8,7 @@ Android-native, offline-first AI image generation studio.
 - Prompt, negative prompt, dimensions, steps, CFG and seed controls
 - Local model manager: import from Android file picker, list, size display and delete\n- Create screen model selector with persisted selection\n- Basic device RAM/architecture report and suggested starter resolution
 - Supported file extension validation and safer temporary import/finalize flow
-- Background model download worker with foreground notification and progress/cancel API\n- GitHub Actions Debug APK build
+- Background model download worker infrastructure with foreground notification and progress/cancel API (UI wiring pending)\n- GitHub Actions Debug APK build
 
 ## Important
 The stable-diffusion.cpp native library is now configured to compile/link into the Android ARM64 JNI library. The JNI inference API and model loading are not wired yet. Imported files still cannot generate images, and Generate remains disabled. Model selection and basic device readiness information are now implemented.

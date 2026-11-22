@@ -33,6 +33,20 @@ class ModelRepository(context: Context) {
         return LocalModel(target.absolutePath, target.nameWithoutExtension, target.name, target.length())
     }
 
+    fun importDownloadedModel(source: File, preferredName: String): LocalModel {
+        require(source.exists() && source.length() > 0L) { "Downloaded model file is empty" }
+        val safeName = preferredName.replace(Regex("[^A-Za-z0-9._-]"), "_")
+        require(ModelFileRules.isSupported(safeName)) { "Unsupported downloaded model format" }
+        val base = File(folder, safeName)
+        val target = if (base.exists()) File(folder, "${base.nameWithoutExtension}_${UUID.randomUUID().toString().take(8)}.${base.extension}") else base
+        val temp = File(folder, "${target.name}.download_importing")
+        source.copyTo(temp, overwrite = true)
+        require(temp.length() > 0L) { "Copied model file is empty" }
+        require(temp.renameTo(target)) { "Could not finalize downloaded model" }
+        prefs.edit().putString(target.absolutePath, target.name).apply()
+        return LocalModel(target.absolutePath, target.nameWithoutExtension, target.name, target.length())
+    }
+
     fun delete(model: LocalModel) {
         File(model.id).delete()
         prefs.edit().remove(model.id).apply()

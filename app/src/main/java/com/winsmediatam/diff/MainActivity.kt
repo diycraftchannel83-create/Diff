@@ -63,7 +63,7 @@ fun DiffApp() {
     val downloadProgress = (downloadWorkInfo?.progress?.getInt(OfflineModelDownloadWorker.KEY_PERCENT, 0) ?: 0) / 100f
     val downloadedBytes = downloadWorkInfo?.progress?.getLong(OfflineModelDownloadWorker.KEY_DOWNLOADED, 0L) ?: 0L
     val downloadTotalBytes = downloadWorkInfo?.progress?.getLong(OfflineModelDownloadWorker.KEY_TOTAL, OfflineModelDownloader.MODEL_ZIP_SIZE) ?: OfflineModelDownloader.MODEL_ZIP_SIZE
-    val downloadError = if (downloadWorkInfo?.state == WorkInfo.State.FAILED) "Background download failed. Try again; partial download may resume." else null
+    val downloadError = downloadWorkInfo?.outputData?.getString(OfflineModelDownloadWorker.KEY_ERROR) ?: if (downloadWorkInfo?.state == WorkInfo.State.FAILED) "Download failed. Tap retry; partial download may resume if server supports it." else null
     LaunchedEffect(downloadWorkInfo?.state) {
         if (downloadWorkInfo?.state == WorkInfo.State.SUCCEEDED) localModels = repository.list()
     }
@@ -394,8 +394,8 @@ private fun ModelManagerScreen(modifier: Modifier, models: List<LocalModel>, onI
                     Text("Stable Diffusion 1.5 Q8 GGUF • ~1.88 GB • CreativeML OpenRAIL-M", color = TextMuted, fontSize = 12.sp)
                     Text("Download inside the app. ZIP extraction and model import are automatic. If canceled or interrupted, the partial download is kept and resumed on the next attempt when the server supports Range requests.", fontSize = 13.sp)
                     if (downloading) {
-                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
-                        Text("${(progress * 100).toInt()}% • ${ModelRepository.formatSize(downloaded)} / ${ModelRepository.formatSize(total)}", color = TextMuted, fontSize = 12.sp)
+                        if (downloaded <= 0L) LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) else LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+                        Text(if (downloaded <= 0L) "Connecting to model server…" else "${(progress * 100).toInt()}% • ${ModelRepository.formatSize(downloaded)} / ${ModelRepository.formatSize(total)}", color = TextMuted, fontSize = 12.sp)
                         OutlinedButton(onClick = onCancelDownload, modifier = Modifier.fillMaxWidth()) { Text("Cancel download") }
                     } else Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Download, null); Spacer(Modifier.width(8.dp)); Text("Download SD 1.5 Offline Model") }
                     if (downloadError != null) Text(downloadError, color = Color(0xFFFF6B6B), fontSize = 12.sp)

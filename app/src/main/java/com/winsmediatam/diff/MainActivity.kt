@@ -113,7 +113,7 @@ fun DiffApp() {
             }
         }) { padding ->
             when (selectedTab) {
-                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, { loadedModelPath = it }, generationProgress, { generationProgress = it }, historyRepository, sampler, { sampler = it }, scheduler, { scheduler = it }, historyRestoreEntry)
+                0 -> CreateScreen(Modifier.padding(padding), prompt, { prompt = it }, negativePrompt, { negativePrompt = it }, localModels, selectedModelId, { id -> selectedModelId = id; selectionPrefs.edit().putString("selected_model_id", id).apply() }, steps, { steps = it }, cfg, { cfg = it }, width, { width = it }, height, { height = it }, seed, { seed = it }, showAdvanced, { showAdvanced = it }, generatedBitmap, generating, generationMessage, { bitmap -> generatedBitmap = bitmap }, { generating = it }, { generationMessage = it }, loadedModelPath, { loadedModelPath = it }, generationProgress, { generationProgress = it }, historyRepository, sampler, { sampler = it }, scheduler, { scheduler = it }, historyRestoreEntry)
                 1 -> GalleryScreen(Modifier.padding(padding), historyRepository) { entry -> prompt = entry.prompt; negativePrompt = entry.negativePrompt; historyRestoreEntry = entry; selectedTab = 0 }
                 2 -> ModelManagerScreen(Modifier.padding(padding), localModels, { modelPicker.launch(arrayOf("*/*")) }, { item -> repository.delete(item); localModels = repository.list() }, importError, isDownloading, downloadProgress, downloadedBytes, downloadTotalBytes, downloadError, {
                     OfflineModelDownloadWorker.enqueue(context)
@@ -131,7 +131,7 @@ private fun CreateScreen(
     steps: Float, onSteps: (Float) -> Unit, cfg: Float, onCfg: (Float) -> Unit,
     width: String, onWidth: (String) -> Unit, height: String, onHeight: (String) -> Unit,
     seed: String, onSeed: (String) -> Unit, advanced: Boolean, onAdvanced: (Boolean) -> Unit,
-    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit, historyRepository: GenerationHistoryRepository, sampler: String, onSampler: (String) -> Unit, scheduler: String, onScheduler: (String) -> Unit, restoreEntry: GenerationHistoryEntry?
+    generatedBitmap: Bitmap?, generating: Boolean, generationMessage: String, onBitmap: (Bitmap?) -> Unit, onGenerating: (Boolean) -> Unit, onGenerationMessage: (String) -> Unit, loadedModelPath: String?, onLoadedModel: (String?) -> Unit, generationProgress: Float, onProgress: (Float) -> Unit, historyRepository: GenerationHistoryRepository, sampler: String, onSampler: (String) -> Unit, scheduler: String, onScheduler: (String) -> Unit, restoreEntry: GenerationHistoryEntry?
 ) {
     var modelMenuExpanded by remember { mutableStateOf(false) }
     var presetMenuExpanded by remember { mutableStateOf(false) }

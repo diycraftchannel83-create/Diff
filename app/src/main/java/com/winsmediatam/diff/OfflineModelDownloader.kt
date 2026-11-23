@@ -54,7 +54,7 @@ object OfflineModelDownloader {
             var current = offset
             var lastReported = offset
             connection.inputStream.use { input ->
-                zipFile.outputStream().buffered(BUFFER_SIZE).use { output ->
+                java.io.FileOutputStream(zipFile, resumeAccepted).buffered(BUFFER_SIZE).use { output ->
                     val buffer = ByteArray(BUFFER_SIZE)
                     while (true) {
                         coroutineContext.ensureActive()

@@ -14,80 +14,69 @@ import androidx.work.WorkManager
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.ExistingWorkPolicy
 
-class OfflineModelDownloadWorker(
-    appContext: Context,
-    params: WorkerParameters
-) : CoroutineWorker(appContext, params) {
-
+class OfflineModelDownloadWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
         createNotificationChannel()
-        setForeground(createForegroundInfo("Preparing model download", 0, 0))
-
+        setForeground(createForegroundInfo("Starting model download", 0, 0))
         return try {
             val model = OfflineModelDownloader.downloadAndInstall(applicationContext) { downloaded, total ->
-                setProgressAsync(
-                    Data.Builder()
-                        .putLong(KEY_DOWNLOADED, downloaded)
-                        .putLong(KEY_TOTAL, total)
-                        .putInt(KEY_PERCENT, if (total > 0) ((downloaded * 100) / total).toInt().coerceIn(0, 100) else 0)
-                        .build()
-                )
-                val percent = if (total > 0) ((downloaded * 100) / total).toInt() else 0
+                val percent = if (total > 0L) ((downloaded * 100L) / total).toInt().coerceIn(0, 100) else 0
+                setProgressAsync(Data.Builder()
+                    .putLong(KEY_DOWNLOADED, downloaded)
+                    .putLong(KEY_TOTAL, total)
+                    .putInt(KEY_PERCENT, percent)
+                    .putString(KEY_STAGE, "Downloading")
+                    .build())
                 setForegroundAsync(createForegroundInfo("Downloading model: $percent%", downloaded, total))
             }
+            setProgressAsync(Data.Builder()
+                .putLong(KEY_DOWNLOADED, OfflineModelDownloader.MODEL_ZIP_SIZE)
+                .putLong(KEY_TOTAL, OfflineModelDownloader.MODEL_ZIP_SIZE)
+                .putInt(KEY_PERCENT, 100)
+                .putString(KEY_STAGE, "Installing model")
+                .build())
+            setForeground(ForegroundInfo(NOTIFICATION_ID, createNotification("Installing model…", 0, true)))
             setForeground(ForegroundInfo(NOTIFICATION_ID, createNotification("Model installed: ${model.name}", 100, false)))
             Result.success(Data.Builder().putString(KEY_MODEL_NAME, model.name).build())
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            Result.retry()
+            val message = (e.message ?: e.javaClass.simpleName).take(500)
+            setForeground(ForegroundInfo(NOTIFICATION_ID, createNotification("Download failed: $message", 0, false)))
+            Result.failure(Data.Builder().putString(KEY_ERROR, message).build())
         }
     }
-
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = applicationContext.getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(
+            applicationContext.getSystemService(NotificationManager::class.java).createNotificationChannel(
                 NotificationChannel(CHANNEL_ID, "Model downloads", NotificationManager.IMPORTANCE_LOW)
-                    .apply { description = "Offline AI model download progress" }
-            )
+                    .apply { description = "Offline AI model download progress" })
         }
     }
-
     private fun createForegroundInfo(message: String, downloaded: Long, total: Long): ForegroundInfo {
         val percent = if (total > 0) ((downloaded * 100) / total).toInt().coerceIn(0, 100) else 0
         return ForegroundInfo(NOTIFICATION_ID, createNotification(message, percent, total <= 0))
     }
-
     private fun createNotification(message: String, percent: Int, indeterminate: Boolean): Notification =
         NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentTitle("Diff AI Studio")
-            .setContentText(message)
-            .setProgress(100, percent, indeterminate)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-            .build()
-
+            .setContentTitle("Diff AI Studio").setContentText(message)
+            .setProgress(100, percent, indeterminate).setOngoing(true).setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS).build()
     companion object {
         const val WORK_NAME = "diff_offline_model_download"
         const val KEY_DOWNLOADED = "downloaded_bytes"
         const val KEY_TOTAL = "total_bytes"
         const val KEY_PERCENT = "percent"
         const val KEY_MODEL_NAME = "model_name"
+        const val KEY_STAGE = "stage"
+        const val KEY_ERROR = "download_error"
         private const val CHANNEL_ID = "diff_model_downloads"
         private const val NOTIFICATION_ID = 4815
-
         fun enqueue(context: Context) {
-            val request = OneTimeWorkRequestBuilder<OfflineModelDownloadWorker>()
-                .addTag(WORK_NAME)
-                .build()
+            val request = OneTimeWorkRequestBuilder<OfflineModelDownloadWorker>().addTag(WORK_NAME).build()
             WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request)
         }
-
-        fun cancel(context: Context) {
-            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
-        }
+        fun cancel(context: Context) { WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME) }
     }
 }
